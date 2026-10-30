@@ -413,31 +413,31 @@ app.layout = dbc.Container([
         # ---------- Barra de filtros (ocupa el ancho que antes eran las tarjetas) ----------
         barra_filtros(),
 
-        # ---------- Indicador del Plan de Desarrollo + priorización ----------
-        dbc.Row([
-            dbc.Col(tarjeta("Plan de Desarrollo · Villavo Somos Todos", "fa-bullseye",
-                            "g_plan", "132px",
-                            "216 de 300 km · LED 50 % → meta 90 %"),
-                    width=12, xl=4),
-            dbc.Col(tarjeta("Reportes por prioridad", "fa-flag", "g_prioridad", "165px",
-                            "clic en una barra para filtrar"),
-                    width=12, md=6, xl=3),
-            dbc.Col(tarjeta("Ranking de comunas por prioridad", "fa-ranking-star",
-                            "g_ranking", "195px",
-                            "60 % altas + 25 % pendientes + 15 % antigüedad"),
-                    width=12, md=6, xl=5),
-        ], className="g-3 mb-3"),
-
-        # ---------- Mapa (25 % más alto) + tipo/canal apilados a la derecha ----------
+        # ---------- MAPA como foco principal + tipo/canal a la derecha ----------
         dbc.Row([
             dbc.Col(tarjeta_mapa(), width=12, xl=8, className="mb-0"),
             dbc.Col([
-                tarjeta("Reportes por tipo de daño", "fa-chart-column", "g_tipo", "32vh",
+                tarjeta("Reportes por tipo de daño", "fa-chart-column", "g_tipo", "30vh",
                         "clic en una barra para filtrar"),
-                tarjeta("Canal de reporte", "fa-filter", "g_canal", "32vh",
+                tarjeta("Canal de reporte", "fa-filter", "g_canal", "30vh",
                         "clic en una etapa para filtrar"),
             ], width=12, xl=4),
         ], className="g-3 mb-3"),
+
+        # ---------- Indicador del Plan de Desarrollo + priorización ----------
+        dbc.Row([
+            dbc.Col(tarjeta("Plan de Desarrollo · Villavo Somos Todos", "fa-bullseye",
+                            "g_plan", "24vh",
+                            "216 de 300 km · LED 50 % → meta 90 %"),
+                    width=12, xl=4),
+            dbc.Col(tarjeta("Reportes por prioridad", "fa-flag", "g_prioridad", "24vh",
+                            "clic en una barra para filtrar"),
+                    width=12, md=6, xl=3),
+            dbc.Col(tarjeta("Ranking de comunas por prioridad", "fa-ranking-star",
+                            "g_ranking", "24vh",
+                            "60 % altas + 25 % pendientes + 15 % antigüedad"),
+                    width=12, md=6, xl=5),
+        ], className="g-3 mb-3 ce-fila-mosaico"),
 
         # ---------- Parte inferior: visible al hacer scroll ----------
         dbc.Row(dbc.Col(
@@ -448,18 +448,18 @@ app.layout = dbc.Container([
 
         dbc.Row([
             dbc.Col(tarjeta("Entradas y salidas por semana", "fa-right-left",
-                            "g_semana", "28vh", "clic en una semana para filtrar"),
+                            "g_semana", "30vh", "clic en una semana para filtrar"),
                     width=12, md=6, xl=3),
-            dbc.Col(tarjeta("Reportes por comuna", "fa-map", "g_comuna", "28vh",
+            dbc.Col(tarjeta("Reportes por comuna", "fa-map", "g_comuna", "30vh",
                             "clic en una comuna para filtrar"),
                     width=12, md=6, xl=3),
             dbc.Col(tarjeta("Tiempo medio por tipo de daño", "fa-stopwatch",
-                            "g_resolucion", "28vh", "clic para filtrar por tipo"),
+                            "g_resolucion", "30vh", "clic para filtrar por tipo"),
                     width=12, md=6, xl=3),
             dbc.Col(tarjeta("Tiempo de respuesta por dependencia", "fa-building-columns",
-                            "g_dependencia", "28vh", "días entre reporte y resolución"),
+                            "g_dependencia", "30vh", "días entre reporte y resolución"),
                     width=12, md=6, xl=3),
-        ], className="g-3 mb-3"),
+        ], className="g-3 mb-3 ce-fila-mosaico"),
 
         # ---------- Detalle del registro seleccionado + tabla paginada ----------
         dbc.Row([
@@ -646,17 +646,22 @@ def _colores_categoria(categorias, seleccion, color=C_DATO):
 def _fig_vacia(msg="Sin reportes para los filtros seleccionados"):
     fig = go.Figure()
     fig.update_layout(margin=dict(l=10, r=10, t=10, b=10), paper_bgcolor=TRANS,
+                      autosize=True,
                       xaxis={"visible": False}, yaxis={"visible": False},
                       annotations=[{"text": msg, "showarrow": False, "font": {"size": 12},
                                     "xref": "paper", "yref": "paper", "x": 0.5, "y": 0.5}])
     return fig
 
 
-def _layout_base(fig, alto, leyenda=False, categorias=False):
+def _layout_base(fig, alto=None, leyenda=False, categorias=False):
     """Estilos comunes. `categorias=True` = barras horizontales (categorías en Y):
-    sin rejilla y con separación entre los nombres de categoría y la barra."""
+    sin rejilla y con separación entre los nombres de categoría y la barra.
+
+    Sin `alto`, el gráfico se adapta al contenedor (autosize): así todas las
+    tarjetas de una misma fila quedan exactamente con la misma altura.
+    """
     fig.update_layout(
-        margin=dict(l=38, r=12, t=6, b=6), height=alto,
+        margin=dict(l=38, r=12, t=6, b=6), autosize=True,
         paper_bgcolor=TRANS, plot_bgcolor=TRANS, font={"size": 13.5},
         showlegend=leyenda,
         legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "x": 0,
@@ -686,7 +691,7 @@ def barras_tipo(df_f, seleccion=None):
         textfont={"size": 13},
         hovertemplate="%{y}: <b>%{x}</b> reportes<extra></extra>",
     ))
-    fig = _layout_base(fig, 250, categorias=True)
+    fig = _layout_base(fig, categorias=True)
     fig.update_layout(margin=dict(l=112, r=30, t=6, b=6))
     return fig
 
@@ -709,7 +714,7 @@ def embudo_canal(df_f, seleccion=None):
         hovertemplate="%{customdata[0]}: <b>%{x}</b> reportes<extra></extra>",
     ))
     fig.update_layout(
-        margin=dict(l=8, r=14, t=8, b=8), height=250,
+        margin=dict(l=8, r=14, t=8, b=8), autosize=True,
         paper_bgcolor=TRANS, plot_bgcolor=TRANS, font={"size": 13},
         hoverlabel={"font": {"size": 13}}, showlegend=False,
     )
@@ -754,7 +759,7 @@ def fig_evolucion(df_f):
         x=dias, y=acum_res, name="Resueltos acumulados", mode="lines",
         line={"color": "#1ABC9C", "width": 2.6},
         hovertemplate="Resueltos: <b>%{y}</b><extra></extra>"))
-    fig = _layout_base(fig, 300, leyenda=True)
+    fig = _layout_base(fig, leyenda=True)
     fig.update_xaxes(tickformat="%d %b", nticks=min(8, max(2, len(dias))))
     return fig
 
@@ -779,7 +784,7 @@ def fig_semanal(df_f):
     fig.add_trace(go.Bar(x=idx, y=resueltos.reindex(idx, fill_value=0), name="Resueltos",
                          marker_color="#1ABC9C", marker_line_width=0,
                          hovertemplate="Resueltos: <b>%{y}</b><extra></extra>"))
-    fig = _layout_base(fig, 230, leyenda=True)
+    fig = _layout_base(fig, leyenda=True)
     fig.update_layout(barmode="group", bargap=0.25, bargroupgap=0.06)
     fig.update_xaxes(tickformat="%d %b")
     return fig
@@ -798,7 +803,7 @@ def fig_comunas(df_f, seleccion=None):
         textfont={"size": 13},
         hovertemplate="%{y}: <b>%{x}</b> reportes<extra></extra>",
     ))
-    fig = _layout_base(fig, 230, categorias=True)
+    fig = _layout_base(fig, categorias=True)
     fig.update_layout(margin=dict(l=82, r=30, t=6, b=6))
     return fig
 
@@ -820,7 +825,7 @@ def fig_resolucion(df_f, seleccion=None):
         hovertemplate="%{y}: <b>%{x:.1f}</b> días de media (%{customdata[0]} resueltos)"
                       "<extra></extra>",
     ))
-    fig = _layout_base(fig, 230, categorias=True)
+    fig = _layout_base(fig, categorias=True)
     fig.update_layout(margin=dict(l=108, r=48, t=6, b=6))
     return fig
 
@@ -874,7 +879,7 @@ def fig_plan_desarrollo(df_f):
                          "#3498DB", {"x": [0.0, 0.48], "y": [0, 0.8]}))
     fig.add_trace(_gauge(led_total, META_LED, "Alumbrado LED", " %",
                          "#1ABC9C", {"x": [0.52, 1.0], "y": [0, 0.8]}))
-    fig.update_layout(margin=dict(l=6, r=6, t=16, b=0), height=150,
+    fig.update_layout(margin=dict(l=6, r=6, t=16, b=0), autosize=True,
                       paper_bgcolor=TRANS, showlegend=False, font={"size": 11})
     return fig
 
@@ -899,7 +904,7 @@ def fig_prioridades(df_f, seleccion=None):
         textfont={"size": 13},
         hovertemplate="Prioridad %{y}: <b>%{x}</b> reportes<extra></extra>",
     ))
-    fig = _layout_base(fig, 150, categorias=True)
+    fig = _layout_base(fig, categorias=True)
     fig.update_layout(margin=dict(l=72, r=34, t=4, b=4))
     return fig
 
@@ -938,7 +943,7 @@ def fig_ranking_comunas(df_f):
                        "%{customdata[0]} de %{customdata[1]} reportes en prioridad alta"
                        "<extra></extra>"),
     ))
-    fig = _layout_base(fig, 195, categorias=True)
+    fig = _layout_base(fig, categorias=True)
     fig.update_layout(margin=dict(l=82, r=42, t=6, b=6))
     fig.update_xaxes(range=[0, 100], tickvals=[0, 25, 50, 75, 100])
     return fig
@@ -963,7 +968,7 @@ def fig_dependencias(df_f, seleccion=None):
         hovertemplate="%{y}: <b>%{x:.1f}</b> días de media (%{customdata[0]} resueltos)"
                       "<extra></extra>",
     ))
-    fig = _layout_base(fig, 230, categorias=True)
+    fig = _layout_base(fig, categorias=True)
     fig.update_layout(margin=dict(l=116, r=48, t=6, b=6))
     return fig
 

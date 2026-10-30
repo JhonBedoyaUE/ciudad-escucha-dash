@@ -333,3 +333,13 @@ html.light .surface:hover { box-shadow: 0 8px 22px rgba(15, 30, 50, .12) !import
 .ce-f-fechas { flex: 1 1 300px; min-width: 288px; }
 .ce-f-btn { flex: 0 0 auto; }
 #g_prioridad .plot-container { cursor: pointer; }
+
+/* ---------- Mosaico: todas las tarjetas de una fila con la misma altura ---------- */
+.ce-fila-mosaico > [class*="col-"] { display: flex; }
+.ce-fila-mosaico > [class*="col-"] > .card {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.ce-fila-mosaico .card-body { display: flex; flex-direction: column; }
+.ce-fila-mosaico .dash-graph { flex: 1 1 auto; }
