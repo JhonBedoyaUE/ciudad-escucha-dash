@@ -57,6 +57,43 @@ docker run -p 8050:8050 ciudad-escucha-dash
 El `Dockerfile` usa **Waitress** (servidor WSGI de producción) y expone la
 salud de la app en `/health`.
 
+## ☁️ Despliegue en AWS (producción)
+
+El dashboard público se sirve desde el servidor **`aws-sia`** (Ubuntu 26.04):
+
+| Pieza | Detalle |
+|-------|---------|
+| URL | https://c-escucha.jhonb.dev |
+| Código | `/opt/ciudad-escucha` (clon de `master`) + `venv` |
+| Servicio | `ciudad-escucha.service` — `run.sh` con Waitress en el puerto 8505 (IPv4 + IPv6) |
+| Túnel | `ciudad-escucha-aws` (`4f9b06df-0411-4c65-97a6-8c2db5ddff88`), servicio `cloudflared-ciudad-escucha.service`, ingress `c-escucha.jhonb.dev → http://localhost:8505` |
+| DNS | CNAME `c-escucha.jhonb.dev` apuntando a ese túnel |
+
+Actualizar la versión publicada (desde el portátil, con `master` ya subido):
+
+```bash
+./deploy/actualizar-aws.sh        # git pull + restart + comprobación del dominio
+```
+
+Primera instalación en un servidor nuevo:
+
+```bash
+sudo apt install -y python3-venv
+sudo git clone https://github.com/JhonBedoyaUE/ciudad-escucha-dash.git /opt/ciudad-escucha
+sudo chown -R $USER:$USER /opt/ciudad-escucha
+cd /opt/ciudad-escucha && python3 -m venv venv && ./venv/bin/pip install -r requirements.txt
+# servicio systemd con Environment=PORT=8505 y ExecStart=/opt/ciudad-escucha/run.sh
+# túnel: cloudflared tunnel create ciudad-escucha-aws
+#        cloudflared tunnel route dns --overwrite-dns ciudad-escucha-aws c-escucha.jhonb.dev
+```
+
+Los datos viven en `/opt/ciudad-escucha/data/generated/dataset_simulado.csv`: los
+reportes creados desde el formulario y los cambios de estado se guardan ahí.
+
+Para volver a servir el dominio desde el portátil basta con reapuntar el DNS al
+túnel local (`c-escucha`, `ee01174c-1d9a-4d6c-84c1-a0d2ecb8a55b`) y levantar
+`./run.sh` en el puerto 8505.
+
 ## 📁 Estructura
 
 ```
