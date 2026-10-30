@@ -235,14 +235,16 @@ app.layout = dbc.Container([
                               className="d-none d-md-block",
                               style={"font-size": ".62rem", "letter-spacing": ".05em"}),
                     width="auto"),
-            dbc.Col(dbc.Button([html.I(className="fa-solid fa-plus me-1"), " Nuevo reporte"],
-                               id="btn_abrir_form", color="info", size="sm", className="text-nowrap"),
-                    width="auto", className="ms-auto"),
+            # El toggle de tema queda junto a la acción principal, que va al extremo derecho
             dbc.Col(dbc.Button([html.I(className="fa-solid fa-sun", id="icono_tema")],
                                id="btn_tema", color="outline-secondary", size="sm",
                                title="Alternar modo claro / oscuro", className="px-2"),
+                    width="auto", className="ms-auto"),
+            dbc.Col(dbc.Button([html.I(className="fa-solid fa-plus me-1"), " Nuevo reporte"],
+                               id="btn_abrir_form", color="info", size="sm",
+                               className="text-nowrap px-3 py-1 ce-btn-nuevo"),
                     width="auto"),
-        ], className="align-items-center g-2 py-1"),
+        ], className="align-items-center g-2 py-1 flex-nowrap w-100"),
         sticky="top", className="ce-navbar mb-3",
     ),
 
@@ -253,7 +255,7 @@ app.layout = dbc.Container([
         # ---------- Mapa (25 % más alto) + tipo/canal apilados a la derecha ----------
         dbc.Row([
             dbc.Col(tarjeta("Mapa interactivo", "fa-map-location-dot", "mapa", "70vh",
-                            "Haz clic en un punto 👆 · carto-positron · datos simulados"),
+                            "Haz clic en un punto 👆 · fondo oscuro/acorde al tema · datos simulados"),
                     width=12, xl=8, className="mb-0"),
             dbc.Col([
                 tarjeta("Reportes por tipo de daño", "fa-chart-column", "g_tipo", "32vh"),
@@ -317,14 +319,18 @@ app.layout = dbc.Container([
               style={"position": "fixed", "top": 14, "right": 14, "zIndex": 9999, "minWidth": 310}),
 
     dcc.Store(id="store_actualizado"),
+    # Tema actual (lo mantiene assets/theme.js): el mapa cambia de basemap claro/oscuro
+    dcc.Store(id="store_tema", data="dark"),
 ], fluid=True, className="g-3")
 
 
 # ------------------------------------------------------------------
 # Figuras
 # ------------------------------------------------------------------
-def figura_mapa(df_f):
+def figura_mapa(df_f, tema="dark"):
     geo = cargar_veredas_geojson()
+    # En tema oscuro el basemap también es oscuro (Carto Dark Matter)
+    estilo = "carto-positron" if tema == "light" else "carto-darkmatter"
     fig = go.Figure()
     fig.add_trace(go.Choroplethmap(
         geojson=geo,
@@ -354,7 +360,7 @@ def figura_mapa(df_f):
     fig.update_layout(
         margin={"r": 0, "t": 0, "b": 0, "l": 0},
         paper_bgcolor=TRANS, showlegend=False,
-        map={"style": "carto-positron", "center": VILLAVICENCIO, "zoom": 11.35},
+        map={"style": estilo, "center": VILLAVICENCIO, "zoom": 11.35},
     )
     return fig
 
@@ -368,17 +374,24 @@ def _fig_vacia(msg="Sin reportes para los filtros seleccionados"):
     return fig
 
 
-def _layout_base(fig, alto, leyenda=False):
+def _layout_base(fig, alto, leyenda=False, categorias=False):
+    """Estilos comunes. `categorias=True` = barras horizontales (categorías en Y):
+    sin rejilla y con separación entre los nombres de categoría y la barra."""
     fig.update_layout(
         margin=dict(l=38, r=12, t=6, b=6), height=alto,
-        paper_bgcolor=TRANS, plot_bgcolor=TRANS, font={"size": 11},
+        paper_bgcolor=TRANS, plot_bgcolor=TRANS, font={"size": 13.5},
         showlegend=leyenda,
         legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "x": 0,
-                "font": {"size": 10.5}},
+                "font": {"size": 12.5}},
+        hoverlabel={"font": {"size": 13}},
         hovermode="x unified",
     )
-    fig.update_xaxes(showgrid=False, zeroline=False, title="")
-    fig.update_yaxes(showgrid=True, gridcolor=GRID, gridwidth=0.5, zeroline=False, title="")
+    fig.update_xaxes(showgrid=False, zeroline=False, title="",
+                     tickfont={"size": 12.5})
+    fig.update_yaxes(showgrid=not categorias, gridcolor=GRID, gridwidth=0.5,
+                     zeroline=False, title="", tickfont={"size": 13})
+    if categorias:
+        fig.update_yaxes(ticklabelstandoff=12, ticks="")
     return fig
 
 
@@ -393,11 +406,11 @@ def barras_tipo(df_f):
         marker={"color": data["tipo_dano"].map(COLOR_TIPO), "cornerradius": 5,
                 "line": {"width": 0}},
         text=data["n"], textposition="outside", cliponaxis=False,
+        textfont={"size": 13},
         hovertemplate="%{y}: <b>%{x}</b> reportes<extra></extra>",
     ))
-    fig = _layout_base(fig, 250)
-    fig.update_layout(margin=dict(l=98, r=26, t=6, b=6))
-    fig.update_yaxes(showgrid=False)  # categorías en Y: sin líneas sobre las barras
+    fig = _layout_base(fig, 250, categorias=True)
+    fig.update_layout(margin=dict(l=112, r=30, t=6, b=6))
     return fig
 
 
@@ -408,17 +421,18 @@ def dona_canal(df_f):
     df_c = df_c.sort_values("n", ascending=False)
     fig = px.pie(df_c, values="n", names="canal_reporte", hole=0.52)
     fig.update_traces(
-        textposition="inside", textinfo="percent", textfont={"size": 10},
-        domain={"x": [0, 0.6], "y": [0, 1]},
+        textposition="inside", textinfo="percent", textfont={"size": 12.5},
+        domain={"x": [0, 0.55], "y": [0, 1]},
         marker={"line": {"color": TRANS, "width": 1.2}},
         hovertemplate="%{label}: <b>%{value}</b> reportes (%{percent})<extra></extra>",
     )
     fig.update_layout(margin=dict(l=4, r=6, t=6, b=6), height=250,
-                      paper_bgcolor=TRANS, plot_bgcolor=TRANS, font={"size": 10.5},
+                      paper_bgcolor=TRANS, plot_bgcolor=TRANS, font={"size": 12.5},
+                      hoverlabel={"font": {"size": 13}},
                       showlegend=True,
-                      legend={"orientation": "v", "x": 0.63, "xanchor": "left",
-                              "y": 0.5, "yanchor": "middle", "font": {"size": 9.5},
-                              "itemwidth": 30, "tracegroupgap": 3})
+                      legend={"orientation": "v", "x": 0.58, "xanchor": "left",
+                              "y": 0.5, "yanchor": "middle", "font": {"size": 12},
+                              "itemwidth": 30, "tracegroupgap": 4})
     return fig
 
 
@@ -444,10 +458,10 @@ def fig_evolucion(df_f):
         return _fig_vacia()
     dias, acum, acum_res, saldo = serie_evolucion(df_f)
     fig = go.Figure()
+    # Sin área bajo las líneas: el sombreado no aporta significado propio
     fig.add_trace(go.Scatter(
         x=dias, y=saldo, name="Pendientes (saldo)", mode="lines",
-        line={"color": "#E74C3C", "width": 2.2}, fill="tozeroy",
-        fillcolor="rgba(231,76,60,.13)",
+        line={"color": "#E74C3C", "width": 2.4},
         hovertemplate="Pendientes: <b>%{y}</b><extra></extra>"))
     fig.add_trace(go.Scatter(
         x=dias, y=acum, name="Reportes acumulados", mode="lines",
@@ -493,11 +507,11 @@ def fig_comunas(df_f):
         x=data["n"], y=data["comuna"], orientation="h",
         marker={"color": "#3498DB", "cornerradius": 5, "line": {"width": 0}},
         text=data["n"], textposition="outside", cliponaxis=False,
+        textfont={"size": 13},
         hovertemplate="%{y}: <b>%{x}</b> reportes<extra></extra>",
     ))
-    fig = _layout_base(fig, 230)
-    fig.update_layout(margin=dict(l=68, r=26, t=6, b=6))
-    fig.update_yaxes(showgrid=False)
+    fig = _layout_base(fig, 230, categorias=True)
+    fig.update_layout(margin=dict(l=82, r=30, t=6, b=6))
     return fig
 
 
@@ -512,14 +526,14 @@ def fig_resolucion(df_f):
         x=g["dias"], y=g["tipo_dano"], orientation="h",
         marker={"color": g["tipo_dano"].map(COLOR_TIPO), "cornerradius": 5,
                 "line": {"width": 0}},
-        text=[f"{d:.1f} d" for d in g["dias"]], textposition="outside", cliponaxis=False,
+        text=[f"{d:.1f} d" for d in g["dias"]], textposition="outside",
+        cliponaxis=False, textfont={"size": 13},
         customdata=g[["n"]].values.tolist(),
         hovertemplate="%{y}: <b>%{x:.1f}</b> días de media (%{customdata[0]} resueltos)"
                       "<extra></extra>",
     ))
-    fig = _layout_base(fig, 230)
-    fig.update_layout(margin=dict(l=96, r=42, t=6, b=6))
-    fig.update_yaxes(showgrid=False)
+    fig = _layout_base(fig, 230, categorias=True)
+    fig.update_layout(margin=dict(l=108, r=48, t=6, b=6))
     return fig
 
 
@@ -613,10 +627,11 @@ def cargar_opciones_iniciales(_):
     Input("f_canal", "value"), Input("f_estado", "value"),
     Input("f_fechas", "start_date"), Input("f_fechas", "end_date"),
     Input("btn_reset", "n_clicks"), Input("store_actualizado", "modified_timestamp"),
+    Input("store_tema", "data"),
 )
-def actualizar_dashboard(comuna, tipo, canal, estado, fi, ff, _reset, _ts):
+def actualizar_dashboard(comuna, tipo, canal, estado, fi, ff, _reset, _ts, tema):
     f = filtrar(comuna, tipo, canal, estado, fi, ff)
-    return (resumen_html(f), figura_mapa(f), barras_tipo(f), dona_canal(f),
+    return (resumen_html(f), figura_mapa(f, tema), barras_tipo(f), dona_canal(f),
             fig_evolucion(f), fig_semanal(f), fig_comunas(f), fig_resolucion(f),
             tabla_recientes_html(f))
 

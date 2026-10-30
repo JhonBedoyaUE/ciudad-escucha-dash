@@ -36,6 +36,13 @@ body {
 .ce-navbar {
     background: var(--ce-navbar) !important;
     box-shadow: 0 2px 10px rgba(0,0,0,.25);
+    padding: .5rem 2.4rem !important;   /* más aire horizontal en el header */
+}
+@media (max-width: 991.98px) {
+    .ce-navbar { padding: .5rem 1rem !important; }
+}
+.ce-navbar .btn-nuevo, .ce-navbar #btn_abrir_form {
+    font-size: .86rem; letter-spacing: .01em;
 }
 .ce-navbar .navbar-brand,
 .ce-navbar .ce-title {
@@ -103,12 +110,12 @@ html.light .js-plotly-plot .plotly .ytick text { fill: #5f6f7e !important; }
 .ce-f-btn { flex: 0 0 auto; }
 .ce-f-titulo { font-weight: 700; font-size: .8rem; }
 .ce-f-label {
-    display: block; margin-bottom: .15rem; font-size: .64rem;
+    display: block; margin-bottom: .15rem; font-size: .7rem;
     letter-spacing: .06em; text-transform: uppercase; color: var(--ce-text-muted);
 }
 .ce-resumen { display: flex; flex-wrap: wrap; gap: .3rem .4rem; justify-content: flex-end; }
 .ce-chip {
-    font-size: .71rem; padding: .16rem .55rem; border-radius: 999px;
+    font-size: .76rem; padding: .16rem .55rem; border-radius: 999px;
     background: rgba(52,152,219,.12); border: 1px solid var(--ce-border);
     white-space: nowrap; color: var(--ce-text);
 }

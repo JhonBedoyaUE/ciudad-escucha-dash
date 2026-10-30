@@ -14,6 +14,12 @@
         if (icono) {
             icono.className = tema === "light" ? "fa-solid fa-moon" : "fa-solid fa-sun";
         }
+        // Avisa al backend para que el mapa use basemap claro u oscuro
+        try {
+            window.dash_clientside.set_props("store_tema", { data: tema });
+        } catch (e) {
+            /* Dash todavía no montó los componentes: se reintenta en el intervalo */
+        }
     }
 
     function temaActual() {
@@ -32,10 +38,12 @@
         aplicar(nuevo);
     });
 
-    // Cuando Dash monta el layout, asegurar el icono y el tema
+    // Cuando Dash monta el layout, asegurar el icono, el tema y el store del backend
     var esperas = 0;
     var timer = setInterval(function () {
-        if (document.getElementById("btn_tema")) {
+        var listo = document.getElementById("btn_tema") &&
+                    window.dash_clientside && window.dash_clientside.set_props;
+        if (listo) {
             aplicar(temaActual());
             clearInterval(timer);
         }
