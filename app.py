@@ -44,6 +44,16 @@ COLOR_ESTADO = {
     "Programado": "#2980b9",
     "Resuelto": "#27ae60",
 }
+# Etiqueta corta para el embudo (el nombre completo se ve en el hover)
+ETIQUETA_CANAL = {
+    "Físico/PQRSD Telefónico": "Físico / PQRSD",
+}
+COLOR_CANAL = {
+    "App Ciudad Escucha": "#3498DB",
+    "WhatsApp": "#25D366",
+    "Portal Web": "#9B59B6",
+    "Físico/PQRSD Telefónico": "#E67E22",
+}
 IMG_TIPO = {
     "Vías": "vias.png",
     "Alumbrado público": "alumbrado.png",
@@ -259,7 +269,7 @@ app.layout = dbc.Container([
                     width=12, xl=8, className="mb-0"),
             dbc.Col([
                 tarjeta("Reportes por tipo de daño", "fa-chart-column", "g_tipo", "32vh"),
-                tarjeta("Canal de reporte", "fa-mobile-screen-button", "g_canal", "32vh"),
+                tarjeta("Canal de reporte", "fa-filter", "g_canal", "32vh"),
             ], width=12, xl=4),
         ], className="g-3 mb-3"),
 
@@ -414,25 +424,30 @@ def barras_tipo(df_f):
     return fig
 
 
-def dona_canal(df_f):
+def embudo_canal(df_f):
+    """Embudo de canales: del que más reportes trae al que menos."""
     if df_f.empty:
         return _fig_vacia()
-    df_c = df_f.groupby("canal_reporte", as_index=False).size().rename(columns={"size": "n"})
-    df_c = df_c.sort_values("n", ascending=False)
-    fig = px.pie(df_c, values="n", names="canal_reporte", hole=0.52)
-    fig.update_traces(
-        textposition="inside", textinfo="percent", textfont={"size": 12.5},
-        domain={"x": [0, 0.55], "y": [0, 1]},
-        marker={"line": {"color": TRANS, "width": 1.2}},
-        hovertemplate="%{label}: <b>%{value}</b> reportes (%{percent})<extra></extra>",
+    df_c = (df_f.groupby("canal_reporte").size().rename("n").reset_index()
+            .sort_values("n", ascending=False))
+    fig = go.Figure(go.Funnel(
+        y=[ETIQUETA_CANAL.get(c, c) for c in df_c["canal_reporte"]], x=df_c["n"],
+        customdata=df_c[["canal_reporte"]].values.tolist(),
+        textposition="inside", textinfo="value+percent total", constraintext="inside",
+        insidetextfont={"size": 13, "color": "#ffffff", "family": "Inter, Segoe UI, sans-serif"},
+        outsidetextfont={"size": 13},
+        marker={"color": [COLOR_CANAL.get(c, "#95A5A6") for c in df_c["canal_reporte"]],
+                "line": {"color": TRANS, "width": 0}},
+        connector={"fillcolor": TRANS, "line": {"color": GRID, "width": 1.5}},
+        hovertemplate="%{customdata[0]}: <b>%{x}</b> reportes<extra></extra>",
+    ))
+    fig.update_layout(
+        margin=dict(l=8, r=14, t=8, b=8), height=250,
+        paper_bgcolor=TRANS, plot_bgcolor=TRANS, font={"size": 13},
+        hoverlabel={"font": {"size": 13}}, showlegend=False,
     )
-    fig.update_layout(margin=dict(l=4, r=6, t=6, b=6), height=250,
-                      paper_bgcolor=TRANS, plot_bgcolor=TRANS, font={"size": 12.5},
-                      hoverlabel={"font": {"size": 13}},
-                      showlegend=True,
-                      legend={"orientation": "v", "x": 0.58, "xanchor": "left",
-                              "y": 0.5, "yanchor": "middle", "font": {"size": 12},
-                              "itemwidth": 30, "tracegroupgap": 4})
+    fig.update_yaxes(tickfont={"size": 12.5}, ticks="", ticklabelstandoff=6)
+    fig.update_xaxes(visible=False)
     return fig
 
 
@@ -631,7 +646,7 @@ def cargar_opciones_iniciales(_):
 )
 def actualizar_dashboard(comuna, tipo, canal, estado, fi, ff, _reset, _ts, tema):
     f = filtrar(comuna, tipo, canal, estado, fi, ff)
-    return (resumen_html(f), figura_mapa(f, tema), barras_tipo(f), dona_canal(f),
+    return (resumen_html(f), figura_mapa(f, tema), barras_tipo(f), embudo_canal(f),
             fig_evolucion(f), fig_semanal(f), fig_comunas(f), fig_resolucion(f),
             tabla_recientes_html(f))
 
