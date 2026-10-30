@@ -76,7 +76,7 @@ def form_nuevo_reporte():
     return dbc.Row([
         dbc.Col([
             html.Label("Tipo de daño", className="text-muted small mt-1"),
-            dcc.Dropdown(id="n_tipo", clearable=False, style={"color": "#222"}),
+            dcc.Dropdown(id="n_tipo", clearable=False),
             html.Label("Comuna", className="text-muted small mt-2"),
             dbc.Select(id="n_comuna"),
             dbc.Row([
@@ -145,7 +145,7 @@ app.layout = dbc.Container([
         dbc.Row([
             dbc.Col(html.I(className="fa-solid fa-city text-info"), width="auto",
                     style={"font-size": "1.5rem"}),
-            dbc.Col(html.Span("Ciudad Escucha", style={
+            dbc.Col(html.Span("Ciudad Escucha", className="ce-title", style={
                 "font-weight": 800, "font-size": "1.2rem"}), width="auto"),
             dbc.Col(html.Span("· Villavicencio ", className="text-secondary d-none d-md-block",
                               style={"font-size": ".78rem"}), width="auto"),
@@ -156,10 +156,12 @@ app.layout = dbc.Container([
             dbc.Col(dbc.Button([html.I(className="fa-solid fa-plus me-1"), " Nuevo reporte"],
                                id="btn_abrir_form", color="info", size="sm", className="text-nowrap"),
                     width="auto", className="ms-auto"),
+            dbc.Col(dbc.Button([html.I(className="fa-solid fa-sun", id="icono_tema")],
+                               id="btn_tema", color="outline-secondary", size="sm",
+                               title="Alternar modo claro / oscuro", className="px-2"),
+                    width="auto"),
         ], className="align-items-center g-2 py-1"),
-        sticky="top", dark=True,
-        style={"background": "#15181d"},
-        className="mb-3 border-bottom border-dark",
+        sticky="top", className="ce-navbar mb-3",
     ),
 
     dbc.Container([
@@ -170,13 +172,13 @@ app.layout = dbc.Container([
                 dbc.CardHeader(html.Span("🎚️ Filtros", style={"font-weight": 600})),
                 dbc.CardBody([
                     html.Label("Comuna", className="text-muted small mt-1"),
-                    dcc.Dropdown(id="f_comuna", clearable=False, className="mb-2", style={"color": "#222"}),
+                    dcc.Dropdown(id="f_comuna", clearable=False, className="mb-2"),
                     html.Label("Tipo de daño", className="text-muted small"),
-                    dcc.Dropdown(id="f_tipo", clearable=False, className="mb-2", style={"color": "#222"}),
+                    dcc.Dropdown(id="f_tipo", clearable=False, className="mb-2"),
                     html.Label("Canal de reporte", className="text-muted small"),
-                    dcc.Dropdown(id="f_canal", clearable=False, className="mb-2", style={"color": "#222"}),
+                    dcc.Dropdown(id="f_canal", clearable=False, className="mb-2"),
                     html.Label("Estado de gestión", className="text-muted small"),
-                    dcc.Dropdown(id="f_estado", clearable=False, className="mb-2", style={"color": "#222"}),
+                    dcc.Dropdown(id="f_estado", clearable=False, className="mb-2"),
                     html.Label("Rango de fechas", className="text-muted small mt-1"),
                     dcc.DatePickerRange(id="f_fechas", minimum_nights=0, className="mb-2",
                                         initial_visible_month=pd.Timestamp.now(),
@@ -184,7 +186,7 @@ app.layout = dbc.Container([
                     dbc.Button([html.I(className="fa-solid fa-rotate-left me-1"), " Restablecer"],
                                id="btn_reset", color="secondary", size="sm", outline=True, className="mt-2 w-100"),
                 ]),
-            ], className="shadow-sm border-0 mb-3", style={"background": "#20262f"}),
+            ], className="surface shadow-sm border-0 mb-3"),
                 width=12, lg=3, className="mb-3"),
             # Mapa + barras y canal
             dbc.Col([
@@ -197,19 +199,19 @@ app.layout = dbc.Container([
                     ], className="align-items-center mb-1"),
                     dcc.Graph(id="mapa", config={"displayModeBar": False},
                               style={"height": "56vh"}),
-                ]), className="shadow-sm border-0 mb-3", style={"background": "#20262f"}),
+                ]), className="surface shadow-sm border-0 mb-3"),
                 dbc.Row([
                     dbc.Col(dbc.Card(dbc.CardBody([html.Span("📊 Reportes por tipo de daño",
                                                              style={"font-weight": 700}),
                                                    dcc.Graph(id="g_tipo", config={"displayModeBar": False},
                                                              style={"height": "26vh"}, className="mt-1")]),
-                                     className="shadow-sm border-0 mb-3", style={"background": "#20262f"}),
+                                     className="surface shadow-sm border-0 mb-3"),
                             width=12, md=6),
                     dbc.Col(dbc.Card(dbc.CardBody([html.Span("📱 Canal de reporte",
                                                              style={"font-weight": 700}),
                                                    dcc.Graph(id="g_canal", config={"displayModeBar": False},
                                                              style={"height": "26vh"}, className="mt-1")]),
-                                     className="shadow-sm border-0 mb-3", style={"background": "#20262f"}),
+                                     className="surface shadow-sm border-0 mb-3"),
                             width=12, md=6),
                 ]),
             ], width=12, lg=9, className="mb-3"),
@@ -219,14 +221,14 @@ app.layout = dbc.Container([
                                                          style={"font-weight": 700}),
                                                dcc.Graph(id="g_temporal", config={"displayModeBar": False},
                                                          style={"height": "22vh"}, className="mt-1")]),
-                                className="shadow-sm border-0 mb-3", style={"background": "#20262f"}),
+                                className="surface shadow-sm border-0 mb-3"),
                         width=12)),
         # Tabla recientes
         dbc.Row(dbc.Col(dbc.Card([
             dbc.CardHeader(html.Span([html.I(className="fa-solid fa-list me-2"),
                                       "Últimos reportes registrados"])),
             dbc.CardBody(html.Div(id="tabla_recientes")),
-        ], className="shadow-sm border-0 mb-4", style={"background": "#20262f"}))),
+        ], className="surface shadow-sm border-0 mb-4"))),
         html.Hr(className="border-dark"),
         html.P("🚨 DATOS SIMULADOS · PROYECTO ACADÉMICO · Habilidades Gerenciales · "
                "Autor: Jhon Bedoya (Analista) · Veredas: shapefile DANE 2024 filtrado en QGIS",
@@ -295,9 +297,8 @@ def figura_mapa(df_f):
     ))
     fig.update_layout(
         margin={"r": 0, "t": 0, "b": 0, "l": 0},
-        paper_bgcolor="#20262f",
+        paper_bgcolor="rgba(0,0,0,0)",
         map={"style": "carto-positron", "center": VILLAVICENCIO, "zoom": 11.35},
-        font={"color": "#cfd8e3"},
     )
     return fig
 
@@ -308,8 +309,8 @@ def barras_tipo(df_f):
                  color_discrete_map=COLOR_TIPO)
     fig.update_traces(marker_line_width=0, width=.55)
     fig.update_layout(margin=dict(l=15, r=8, t=4, b=0), height=260,
-                      paper_bgcolor="#20262f", plot_bgcolor="#20262f",
-                      font={"color": "#cfd8e3", "size": 11},
+                      paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                      font={"size": 11},
                       xaxis={"showgrid": False, "title": "", "tickangle": -15,
                              "categoryorder": "total descending"},
                       yaxis={"showgrid": True, "gridcolor": "#2b3441", "gridwidth": .5,
@@ -323,9 +324,9 @@ def dona_canal(df_f):
     fig = px.pie(df_c, values="n", names="canal_reporte", hole=.45)
     fig.update_traces(textposition="inside", textinfo="label+percent",
                       textfont={"size": 10},
-                      marker={"line": {"color": "#20262f", "width": 1.2}})
+                      marker={"line": {"color": "rgba(0,0,0,0)", "width": 1.2}})
     fig.update_layout(margin=dict(l=8, r=8, t=4, b=4), height=260,
-                      paper_bgcolor="#20262f", font={"color": "#cfd8e3", "size": 10.5},
+                      paper_bgcolor="rgba(0,0,0,0)", font={"size": 10.5},
                       showlegend=False)
     return fig
 
@@ -337,8 +338,8 @@ def area_temporal(df_f):
                                line={"color": "#3498DB", "width": 2},
                                fillcolor="rgba(52,152,219,.18)"))
     fig.update_layout(margin=dict(l=25, r=10, t=4, b=0), height=250,
-                      paper_bgcolor="#20262f", plot_bgcolor="#20262f",
-                      font={"color": "#cfd8e3", "size": 11},
+                      paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                      font={"size": 11},
                       xaxis={"showgrid": False, "title": ""},
                       yaxis={"showgrid": True, "gridcolor": "#2b3441", "gridwidth": .5,
                              "title": ""})
@@ -440,8 +441,7 @@ def actualizar_dashboard(comuna, tipo, canal, estado, fi, ff, _reset, _ts):
                           "font-size": ".68rem", "letter-spacing": ".07em"})],
                      className="d-flex align-items-center mb-1"),
             html.H5(valor, className="mb-0", style={"font-weight": 700}),
-        ]), className="shadow-sm border-0 h-100",
-            style={"background": "#222a35"}), width=6, md=4, xl=2, className="mb-2")
+        ]), className="surface shadow-sm border-0 h-100"), width=6, md=4, xl=2, className="mb-2")
 
     kpis = [
         kpi_card("TOTAL REPORTES", f"{len(f)}", "fa-clipboard-list", "#3498DB"),
@@ -491,7 +491,7 @@ def mostrar_detalle(click_data, _cerrar):
             dcc.Dropdown(id="dd_estado_nuevo",
                          options=["Reportado", "En revisión", "Programado", "Resuelto"],
                          value=estado, clearable=False,
-                         style={"color": "#222", "fontSize": ".88rem"}),
+                         ),
             html.Hr(className="border-dark"),
             html.Div([html.Label("Comuna:", className="text-muted small mb-0"),
                       html.Span(comuna, style={"font-weight": 600})]),
@@ -626,7 +626,7 @@ def sugerir(n_clicks, comuna):
                                   marker={"size": 14, "color": "#E74C3C",
                                           "opacity": .9}))
     fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=150,
-                      paper_bgcolor="#20262f",
+                      paper_bgcolor="rgba(0,0,0,0)",
                       map={"style": "carto-positron",
                            "center": {"lat": lat, "lon": lon}, "zoom": 12.6})
     return lat, lon, fig, comuna_sel
@@ -645,7 +645,7 @@ def mini_mapa_manual(lat, lon):
     fig = go.Figure(go.Scattermap(lat=[lat], lon=[lon], mode="markers",
                                   marker={"size": 14, "color": "#3498DB", "opacity": .9}))
     fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=150,
-                      paper_bgcolor="#20262f",
+                      paper_bgcolor="rgba(0,0,0,0)",
                       map={"style": "carto-positron",
                            "center": {"lat": lat, "lon": lon}, "zoom": 12.6})
     return round(float(lat), 6), round(float(lon), 6), fig

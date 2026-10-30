@@ -1,41 +1,134 @@
-/* Estilos personalizados Ciudad Escucha (tema oscuro compacto) */
+/* ===== Temas Ciudad Escucha (oscuro por defecto + modo claro) ===== */
+
+:root {
+    --ce-bg: #171b21;
+    --ce-surface: #20262f;
+    --ce-surface-2: #222a35;
+    --ce-header: #1c2128;
+    --ce-navbar: #15181d;
+    --ce-text: #dfe6ee;
+    --ce-text-muted: #94a3b3;
+    --ce-border: #2a3341;
+    --ce-grid: #2b3441;
+    --ce-scrollbar: #354050;
+}
+
+html.light {
+    --ce-bg: #f4f6f9;
+    --ce-surface: #ffffff;
+    --ce-surface-2: #ffffff;
+    --ce-header: #eceff3;
+    --ce-navbar: #10233a;
+    --ce-text: #2b3a4a;
+    --ce-text-muted: #64748b;
+    --ce-border: #dbe1e8;
+    --ce-grid: #e4e9ef;
+    --ce-scrollbar: #c3ccd6;
+}
+
 body {
-    background: #171b21;
+    background: var(--ce-bg);
     font-family: "Inter", "Segoe UI", system-ui, sans-serif;
-    color: #dfe6ee;
+    color: var(--ce-text);
 }
 
-/* Navbar */
-.navbar {
-    box-shadow: 0 2px 10px rgba(0,0,0,.4);
+/* ---------- Navbar ---------- */
+.ce-navbar {
+    background: var(--ce-navbar) !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,.25);
 }
+.ce-navbar .navbar-brand,
+.ce-navbar .ce-title {
+    color: #fff !important;
+}
+.ce-navbar .text-secondary,
+.ce-navbar .text-muted {
+    color: #aebfd2 !important;
+}
+html.light .ce-navbar { box-shadow: 0 2px 10px rgba(16,35,58,.28); }
 
-/* Cards compactas */
-.card { border: 1px solid #2a3341 !important; }
-.card-header { background: #1c2128; font-size: .85rem; padding: .55rem .9rem; }
-.card-body { padding: .8rem .9rem; }
+/* ---------- Superficies (cards) ---------- */
+.surface {
+    background: var(--ce-surface) !important;
+    border: 1px solid var(--ce-border) !important;
+}
+.card { border: 1px solid var(--ce-border) !important; color: var(--ce-text); }
+html.light .card { box-shadow: 0 2px 10px rgba(15,30,50,.07) !important; }
+.card-header {
+    background: var(--ce-header) !important;
+    border-bottom: 1px solid var(--ce-border) !important;
+    font-size: .85rem; padding: .55rem .9rem; color: var(--ce-text);
+}
+.card-body { padding: .8rem .9rem; color: var(--ce-text); }
 
-/* Filas de tabla */
-.table-dark { --bs-table-bg: transparent; }
+/* ---------- Texto ---------- */
+body .text-muted { color: var(--ce-text-muted) !important; }
+html.light .text-info { color: #0d6efd !important; }
+html.light .btn-outline-secondary,
+html.light .btn-secondary { color: #334155; border-color: #cbd5e1; }
+html.light .btn-outline-secondary:hover { background: #e2e8f0; color: #1e293b; }
+
+/* ---------- Gráficas Plotly (transpaent background) ---------- */
+.js-plotly-plot .plotly text,
+.js-plotly-plot .cursor-ew-resize text { fill: #b9c6d4 !important; }
+html.light .js-plotly-plot .plotly text { fill: #37474f !important; }
+html.light .js-plotly-plot .plotly .xtick text,
+html.light .js-plotly-plot .plotly .ytick text { fill: #5f6f7e !important; }
+
+/* ---------- Dropdowns dcc ---------- */
+.Select-control, .Select-menu-outer, .Select-menu {
+    background: var(--ce-surface-2) !important;
+    color: var(--ce-text) !important;
+    border-color: var(--ce-border) !important;
+}
+.Select-value, .Select-input, .Select-option { color: var(--ce-text) !important; }
+.Select-menu-outer { border-radius: 6px; box-shadow: 0 8px 20px rgba(0,0,0,.25); }
+html.light .Select-menu-outer { box-shadow: 0 8px 20px rgba(15,30,50,.14); }
+.Select-option:hover, .Select-option.is-focused { background: rgba(120,160,200,.18) !important; }
+input.Select-input { color: var(--ce-text) !important; }
+
+/* ---------- Select dbc / inputs ---------- */
+.form-select, .form-control, textarea.form-control {
+    background: var(--ce-surface-2) !important;
+    border-color: var(--ce-border) !important;
+    color: var(--ce-text) !important;
+}
+.form-select:focus, .form-control:focus { border-color: #5aa7e8 !important; box-shadow: 0 0 0 .15rem rgba(52,152,219,.25) !important; }
+
+/* ---------- Modal ---------- */
+.modal-content {
+    background: var(--ce-surface) !important;
+    border: 1px solid var(--ce-border);
+    color: var(--ce-text);
+    box-shadow: 0 24px 60px rgba(0,0,0,.5);
+}
+html.light .modal-content { box-shadow: 0 24px 60px rgba(15,30,50,.3); }
+.modal-header, .modal-footer { border-color: var(--ce-border) !important; }
+.modal-backdrop.show { opacity: .55; }
+
+/* ---------- Tabla ---------- */
+.table { color: var(--ce-text); }
+html.light .table { --bs-table-color: #2b3a4a; }
+html.light .table-hover tbody tr:hover { color: #10233a; }
 .table td, .table th { padding: .32rem .5rem !important; }
+hr { opacity: .25; color: inherit; }
 
-/* Dropdown input dentro de formularios grises */
-.Select-control, .Select-value, .is-focused:not(.Select--multi) > .Select-control,
-.Select-menu { background-color: #fff; }
-input.Select-input { color: #222 !important; }
+/* ---------- Upload ---------- */
+div[id*="upload_foto"] > div {
+    background: var(--ce-surface-2);
+    border-color: var(--ce-border) !important;
+}
 
-/* Selector de fecha compacto */
-.DateInput { font-size: 12px !important; }
-.DatePicker__picker { font-size: .8rem; }
+/* ---------- Toast ---------- */
+.toast {
+    background: var(--ce-surface-2) !important;
+    color: var(--ce-text) !important;
+    border: 1px solid var(--ce-border) !important;
+}
 
-/* Modal más oscuro */
-.modal-content { border: 1px solid #2a3341; box-shadow: 0 24px 60px rgba(0,0,0,.6); }
-.modal-header, .modal-footer { border-color: #2a3341; }
-
-/* Boton form flotante */
-#btn_abrir_form { box-shadow: 0 3px 12px rgba(0,0,0,.35); }
-
-/* Scrollbars discretos */
+/* ---------- Otros ---------- */
+html.light ::selection { background: rgba(52,152,219,.28); }
 ::-webkit-scrollbar { width: 9px; height: 9px; }
-::-webkit-scrollbar-thumb { background: #354050; border-radius: 6px; }
-::-webkit-scrollbar-track { background: #1a1e25; }
+::-webkit-scrollbar-thumb { background: var(--ce-scrollbar); border-radius: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+.DateInput, .DateInput input, .DatePicker__picker { font-size: 12px; }
