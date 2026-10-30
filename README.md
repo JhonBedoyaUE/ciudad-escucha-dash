@@ -34,6 +34,16 @@ python app.py
 # → http://localhost:8505
 ```
 
+O con el servidor de producción (Waitress, el que usa el túnel):
+
+```bash
+./run.sh                     # PORT=8505 por defecto; PORT=xxxx ./run.sh para cambiarlo
+```
+
+`run.sh` abre **IPv4 e IPv6** a la vez porque Cloudflare Tunnel apunta a
+`http://localhost:8505` y en Linux `localhost` resuelve primero a `::1`; con un
+servidor escuchando solo en `0.0.0.0` el túnel devuelve **502**.
+
 ## 🐳 Docker (AWS / nube)
 
 ```bash
