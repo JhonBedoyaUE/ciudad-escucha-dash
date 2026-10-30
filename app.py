@@ -137,6 +137,9 @@ app = Dash(
     suppress_callback_exceptions=True,
     prevent_initial_callbacks="initial_duplicate",
 )
+# `_favicon` es una RUTA relativa a assets/ (no un emoji suelto): si apunta a
+# un archivo inexistente, Dash lanza 500 en TODAS las peticiones.
+app._favicon = "img/favicon.png"
 server = app.server
 
 app.layout = dbc.Container([

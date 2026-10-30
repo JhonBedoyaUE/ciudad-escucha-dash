@@ -15,8 +15,6 @@ exec ./venv/bin/python - <<PYEOF
 from waitress import serve
 import os
 from app import server, app
-app._favicon = "🏙️"
-
 @app.server.route("/health")
 def health():
     return "ok", 200
