@@ -87,6 +87,19 @@ def cargar_df():
     return df
 
 
+def guardar_csv(df):
+    """Escribe el CSV con las fechas en un formato fijo.
+
+    pandas 3 conserva la unidad (µs) de `resuelta_en` y al volcar añadía
+    ".000000"; con strftime el archivo queda idéntico al que lee la app.
+    """
+    out = df.copy()
+    out["fecha_reporte"] = pd.to_datetime(out["fecha_reporte"]).dt.strftime("%Y-%m-%d %H:%M:%S")
+    out["resuelta_en"] = (pd.to_datetime(out["resuelta_en"], errors="coerce")
+                          .dt.strftime("%Y-%m-%d %H:%M:%S").fillna(""))
+    out.to_csv(DATA_CSV, index=False, encoding="utf-8")
+
+
 def cargar_veredas_geojson():
     with open(VEREDAS_GEO, "r", encoding="utf-8") as f:
         return json.load(f)
@@ -945,11 +958,15 @@ def cambiar_estado(nuevo_estado, click_data):
     m = df["id_reporte"] == id_rep
     if not m.any():
         return no_update, no_update, no_update
+    # Al abrir el detalle, el desplegable se monta con el estado actual y dispara
+    # esta callback: si no hay cambio real, no se reescribe el CSV.
+    if df.loc[m, "estado_gestion"].iloc[0] == nuevo_estado:
+        return no_update, no_update, no_update
     df.loc[m, "estado_gestion"] = nuevo_estado
     # `resuelta_en` alimenta los gráficos de evolución: se marca al resolver y
     # se limpia si el reporte vuelve a un estado abierto.
     df.loc[m, "resuelta_en"] = pd.Timestamp.now() if nuevo_estado == "Resuelto" else pd.NaT
-    df.to_csv(DATA_CSV, index=False, encoding="utf-8")
+    guardar_csv(df)
     toast = html.Div([html.I(className="fa-solid fa-circle-check text-success me-2"),
                       f"Estado de {id_rep} actualizado a “{nuevo_estado}”"])
     # `store_actualizado` fuerza el refresco de todas las figuras
@@ -1009,7 +1026,7 @@ def guardar_reporte(tipo, comuna, lat, lon, canal, estado, desc, contenido):
         "resuelta_en": ahora if estado == "Resuelto" else pd.NaT,
     }])
     df = pd.concat([df, nueva], ignore_index=True)
-    df.to_csv(DATA_CSV, index=False, encoding="utf-8")
+    guardar_csv(df)
     return nuevo_id
 
 
