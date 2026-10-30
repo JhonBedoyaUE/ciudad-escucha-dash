@@ -19,7 +19,7 @@ CE-2026-1280,2026-10-14 16:21:23,4.118117,-73.606686,Comuna 4,Vías,Físico/PQRS
 CE-2026-1883,2026-10-14 21:34:23,4.174683,-73.615933,Comuna 9,Alumbrado público,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1761,2026-08-28 10:19:23,4.105147,-73.637004,Comuna 8,Basuras,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1319,2026-09-05 13:26:23,4.114331,-73.625154,Comuna 5,Vías,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
-CE-2026-1549,2026-10-20 16:25:23,4.134056,-73.65576,Comuna 6,Alumbrado público,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-11-07 16:25:23
+CE-2026-1549,2026-10-20 16:25:23,4.134056,-73.65576,Comuna 6,Alumbrado público,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-10-29 16:25:23
 CE-2026-1174,2026-10-06 06:26:23,4.123059,-73.621119,Comuna 4,Basuras,App Ciudad Escucha,Programado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1371,2026-08-20 03:47:23,4.111414,-73.640719,Comuna 5,Alumbrado público,WhatsApp,Programado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1527,2026-10-24 23:13:23,4.14163,-73.640679,Comuna 6,Alumbrado público,WhatsApp,Programado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
@@ -74,7 +74,7 @@ CE-2026-1493,2026-08-30 04:40:23,4.126286,-73.625246,Comuna 5,Alumbrado público
 CE-2026-1590,2026-09-27 20:10:23,4.114031,-73.597631,Comuna 7,Vías,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1741,2026-10-06 05:56:23,4.104671,-73.640957,Comuna 8,Basuras,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1292,2026-08-29 02:26:23,4.128435,-73.606795,Comuna 4,Vías,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-09-27 02:26:23
-CE-2026-1289,2026-10-19 07:05:23,4.115116,-73.605727,Comuna 4,Basuras,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/basuras.png,,2026-11-20 07:05:23
+CE-2026-1289,2026-10-19 07:05:23,4.115116,-73.605727,Comuna 4,Basuras,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/basuras.png,,2026-10-29 07:05:23
 CE-2026-1652,2026-08-18 17:05:23,4.09707,-73.600358,Comuna 7,Alumbrado público,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1039,2026-10-25 04:45:23,4.153282,-73.643206,Comuna 1,Alcantarillado,WhatsApp,En revisión,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,
 CE-2026-1589,2026-08-13 13:36:23,4.10186,-73.581852,Comuna 7,Alcantarillado,Portal Web,En revisión,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,
@@ -134,7 +134,7 @@ CE-2026-1849,2026-08-15 09:28:23,4.158088,-73.613728,Comuna 9,Basuras,App Ciudad
 CE-2026-1265,2026-09-10 18:17:23,4.129128,-73.623826,Comuna 4,Alumbrado público,Físico/PQRSD Telefónico,Reportado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1995,2026-08-15 21:16:23,4.178017,-73.655211,Comuna 10,Vías,WhatsApp,En revisión,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1529,2026-09-22 19:19:23,4.13745,-73.640985,Comuna 6,Vías,WhatsApp,Programado,SIMULADO_ACADEMICO,assets/img/vias.png,,
-CE-2026-1055,2026-10-23 12:41:23,4.139166,-73.63938,Comuna 2,Basuras,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/basuras.png,,2026-10-31 12:41:23
+CE-2026-1055,2026-10-23 12:41:23,4.139166,-73.63938,Comuna 2,Basuras,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/basuras.png,,2026-10-29 12:41:23
 CE-2026-1120,2026-09-05 18:29:23,4.151306,-73.612435,Comuna 3,Alumbrado público,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1215,2026-08-14 22:13:23,4.128589,-73.616455,Comuna 4,Vías,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1025,2026-10-07 23:54:23,4.157422,-73.633431,Comuna 1,Alumbrado público,Portal Web,Reportado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
@@ -157,9 +157,9 @@ CE-2026-1941,2026-10-04 14:04:23,4.172735,-73.657084,Comuna 10,Alumbrado públic
 CE-2026-1462,2026-08-14 21:52:23,4.128179,-73.62974,Comuna 5,Vías,App Ciudad Escucha,Programado,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1309,2026-09-28 00:12:23,4.108005,-73.65183,Comuna 5,Alumbrado público,Portal Web,Reportado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1697,2026-10-15 00:55:23,4.106796,-73.581864,Comuna 7,Alcantarillado,Físico/PQRSD Telefónico,Reportado,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,
-CE-2026-1060,2026-10-08 04:37:23,4.148528,-73.62829,Comuna 2,Otro,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/otro.png,,2026-11-15 04:37:23
+CE-2026-1060,2026-10-08 04:37:23,4.148528,-73.62829,Comuna 2,Otro,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/otro.png,,2026-10-29 04:37:23
 CE-2026-1884,2026-09-15 12:58:23,4.161103,-73.601641,Comuna 9,Basuras,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/basuras.png,,
-CE-2026-1595,2026-10-19 19:17:23,4.097862,-73.601548,Comuna 7,Alumbrado público,Portal Web,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-11-20 19:17:23
+CE-2026-1595,2026-10-19 19:17:23,4.097862,-73.601548,Comuna 7,Alumbrado público,Portal Web,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-10-29 19:17:23
 CE-2026-1767,2026-09-10 18:21:23,4.102873,-73.636585,Comuna 8,Vías,WhatsApp,En revisión,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1649,2026-08-25 16:50:23,4.120651,-73.591498,Comuna 7,Alumbrado público,Portal Web,En revisión,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1650,2026-09-02 18:47:23,4.101212,-73.59287,Comuna 7,Alcantarillado,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,
@@ -167,7 +167,7 @@ CE-2026-1865,2026-09-14 17:40:23,4.158915,-73.609629,Comuna 9,Vías,App Ciudad E
 CE-2026-1668,2026-08-19 03:21:23,4.098836,-73.602872,Comuna 7,Alcantarillado,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,
 CE-2026-1298,2026-10-13 02:17:23,4.119175,-73.643974,Comuna 5,Basuras,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1689,2026-08-05 20:55:23,4.116379,-73.606219,Comuna 7,Alumbrado público,WhatsApp,En revisión,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
-CE-2026-1314,2026-10-04 10:12:23,4.114904,-73.650439,Comuna 5,Vías,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-10-30 10:12:23
+CE-2026-1314,2026-10-04 10:12:23,4.114904,-73.650439,Comuna 5,Vías,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-10-29 10:12:23
 CE-2026-1310,2026-09-29 18:26:23,4.118612,-73.635775,Comuna 5,Basuras,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1361,2026-09-18 05:08:23,4.111816,-73.640364,Comuna 5,Basuras,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/basuras.png,,2026-10-05 05:08:23
 CE-2026-1479,2026-08-13 02:44:23,4.112578,-73.638733,Comuna 5,Otro,Portal Web,Programado,SIMULADO_ACADEMICO,assets/img/otro.png,,
@@ -178,7 +178,7 @@ CE-2026-1363,2026-08-11 11:42:23,4.108047,-73.638561,Comuna 5,Alumbrado público
 CE-2026-1254,2026-09-25 16:20:23,4.129585,-73.621578,Comuna 4,Otro,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/otro.png,,2026-10-28 16:20:23
 CE-2026-1259,2026-08-01 13:23:23,4.129656,-73.608374,Comuna 4,Basuras,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1802,2026-10-12 18:05:23,4.086546,-73.647663,Comuna 8,Otro,WhatsApp,Programado,SIMULADO_ACADEMICO,assets/img/otro.png,,
-CE-2026-1677,2026-10-14 08:39:23,4.104118,-73.593873,Comuna 7,Alumbrado público,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-11-05 08:39:23
+CE-2026-1677,2026-10-14 08:39:23,4.104118,-73.593873,Comuna 7,Alumbrado público,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-10-29 08:39:23
 CE-2026-1494,2026-10-20 15:46:23,4.110213,-73.652025,Comuna 5,Vías,WhatsApp,En revisión,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1670,2026-09-20 14:40:23,4.095,-73.60575,Comuna 7,Alcantarillado,WhatsApp,Programado,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,
 CE-2026-1377,2026-08-22 16:19:23,4.120829,-73.62634,Comuna 5,Otro,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/otro.png,,
@@ -189,7 +189,7 @@ CE-2026-1355,2026-09-24 00:16:23,4.112682,-73.648544,Comuna 5,Alumbrado público
 CE-2026-1365,2026-08-07 07:35:23,4.122028,-73.629669,Comuna 5,Alumbrado público,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1942,2026-10-06 20:56:23,4.157635,-73.666426,Comuna 10,Basuras,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1749,2026-10-17 00:42:23,4.105866,-73.637126,Comuna 8,Alumbrado público,WhatsApp,En revisión,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
-CE-2026-1948,2026-10-19 01:18:23,4.173134,-73.666682,Comuna 10,Vías,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-11-06 01:18:23
+CE-2026-1948,2026-10-19 01:18:23,4.173134,-73.666682,Comuna 10,Vías,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-10-29 01:18:23
 CE-2026-1829,2026-10-15 21:31:23,4.160165,-73.610879,Comuna 9,Basuras,WhatsApp,En revisión,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1656,2026-08-05 15:25:23,4.119326,-73.605329,Comuna 7,Vías,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1199,2026-10-10 00:57:23,4.135364,-73.603608,Comuna 4,Otro,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/otro.png,,2026-10-29 00:57:23
@@ -243,7 +243,7 @@ CE-2026-1003,2026-08-17 23:08:23,4.155184,-73.636032,Comuna 1,Vías,Portal Web,P
 CE-2026-1204,2026-09-03 12:54:23,4.124811,-73.617671,Comuna 4,Basuras,App Ciudad Escucha,Programado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1514,2026-08-30 18:39:23,4.128069,-73.645832,Comuna 5,Otro,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/otro.png,,
 CE-2026-1799,2026-09-09 07:14:23,4.085254,-73.645143,Comuna 8,Vías,WhatsApp,En revisión,SIMULADO_ACADEMICO,assets/img/vias.png,,
-CE-2026-1306,2026-10-06 11:30:23,4.124945,-73.645646,Comuna 5,Basuras,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/basuras.png,,2026-11-01 11:30:23
+CE-2026-1306,2026-10-06 11:30:23,4.124945,-73.645646,Comuna 5,Basuras,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/basuras.png,,2026-10-09 11:30:23
 CE-2026-1109,2026-09-01 03:19:23,4.145754,-73.610229,Comuna 3,Alumbrado público,Portal Web,En revisión,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1430,2026-10-24 15:30:23,4.110666,-73.653741,Comuna 5,Alcantarillado,Físico/PQRSD Telefónico,Programado,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,
 CE-2026-1077,2026-10-22 07:15:23,4.142056,-73.632078,Comuna 2,Alumbrado público,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
@@ -333,7 +333,7 @@ CE-2026-1703,2026-08-28 10:47:23,4.10002,-73.607908,Comuna 7,Vías,App Ciudad Es
 CE-2026-1311,2026-10-07 14:43:23,4.105144,-73.648519,Comuna 5,Alumbrado público,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1722,2026-10-15 19:44:23,4.084408,-73.637682,Comuna 8,Basuras,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1629,2026-08-20 22:10:23,4.103474,-73.591409,Comuna 7,Vías,App Ciudad Escucha,Programado,SIMULADO_ACADEMICO,assets/img/vias.png,,
-CE-2026-1000,2026-10-20 23:27:23,4.152494,-73.633373,Comuna 1,Alumbrado público,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-11-08 23:27:23
+CE-2026-1000,2026-10-20 23:27:23,4.152494,-73.633373,Comuna 1,Alumbrado público,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-10-29 23:27:23
 CE-2026-1316,2026-08-21 11:51:23,4.114714,-73.631577,Comuna 5,Alumbrado público,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1706,2026-10-27 08:11:23,4.109192,-73.651011,Comuna 8,Alumbrado público,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1547,2026-10-29 12:11:23,4.131528,-73.643556,Comuna 6,Alcantarillado,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,
@@ -354,7 +354,7 @@ CE-2026-1274,2026-10-26 01:35:23,4.138359,-73.607024,Comuna 4,Basuras,Portal Web
 CE-2026-1895,2026-10-13 17:53:23,4.157881,-73.605854,Comuna 9,Basuras,WhatsApp,Programado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1069,2026-09-24 16:00:23,4.148959,-73.629968,Comuna 2,Alumbrado público,App Ciudad Escucha,Programado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1291,2026-10-26 06:14:23,4.124954,-73.623122,Comuna 4,Basuras,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/basuras.png,,
-CE-2026-1131,2026-10-26 17:57:23,4.151807,-73.610827,Comuna 3,Basuras,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/basuras.png,,2026-11-17 17:57:23
+CE-2026-1131,2026-10-26 17:57:23,4.151807,-73.610827,Comuna 3,Basuras,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/basuras.png,,2026-10-29 17:57:23
 CE-2026-1300,2026-10-03 09:17:23,4.126963,-73.654226,Comuna 5,Basuras,Portal Web,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1424,2026-09-30 17:41:23,4.111854,-73.648829,Comuna 5,Vías,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1326,2026-08-11 00:22:23,4.114495,-73.645902,Comuna 5,Otro,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/otro.png,,
@@ -383,8 +383,8 @@ CE-2026-1238,2026-09-28 07:35:23,4.117766,-73.621516,Comuna 4,Vías,Portal Web,R
 CE-2026-1145,2026-08-31 01:19:23,4.124946,-73.61594,Comuna 4,Vías,Portal Web,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-09-28 01:19:23
 CE-2026-1792,2026-10-19 16:35:23,4.091236,-73.647144,Comuna 8,Alumbrado público,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1234,2026-08-21 19:35:23,4.134061,-73.618283,Comuna 4,Vías,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
-CE-2026-1220,2026-09-25 00:00:23,4.130693,-73.609396,Comuna 4,Vías,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-11-01 00:00:23
-CE-2026-1923,2026-10-29 18:15:23,4.16464,-73.605484,Comuna 9,Alumbrado público,Portal Web,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-11-28 18:15:23
+CE-2026-1220,2026-09-25 00:00:23,4.130693,-73.609396,Comuna 4,Vías,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-10-30 00:00:23
+CE-2026-1923,2026-10-29 18:15:23,4.16464,-73.605484,Comuna 9,Alumbrado público,Portal Web,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-10-30 18:15:23
 CE-2026-1500,2026-08-09 21:41:23,4.126701,-73.63652,Comuna 5,Basuras,Portal Web,Programado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1132,2026-10-21 23:00:23,4.147774,-73.617089,Comuna 3,Basuras,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1990,2026-08-28 00:45:23,4.167822,-73.661259,Comuna 10,Alumbrado público,Portal Web,En revisión,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
@@ -395,7 +395,7 @@ CE-2026-1696,2026-10-09 09:57:23,4.117627,-73.584687,Comuna 7,Vías,WhatsApp,Rep
 CE-2026-1108,2026-09-26 23:46:23,4.139033,-73.61341,Comuna 3,Vías,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1588,2026-08-13 10:40:23,4.122786,-73.595327,Comuna 7,Vías,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1056,2026-09-20 17:35:23,4.14538,-73.633624,Comuna 2,Basuras,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
-CE-2026-1405,2026-10-15 04:48:23,4.121049,-73.632875,Comuna 5,Vías,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-10-30 04:48:23
+CE-2026-1405,2026-10-15 04:48:23,4.121049,-73.632875,Comuna 5,Vías,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-10-16 04:48:23
 CE-2026-1442,2026-08-25 03:02:23,4.113325,-73.627157,Comuna 5,Vías,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1757,2026-10-17 10:20:23,4.094682,-73.654647,Comuna 8,Alumbrado público,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1997,2026-10-21 16:54:23,4.156368,-73.666796,Comuna 10,Basuras,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/basuras.png,,
@@ -410,7 +410,7 @@ CE-2026-1338,2026-09-30 19:51:23,4.125325,-73.651079,Comuna 5,Alumbrado público
 CE-2026-1051,2026-09-10 09:20:23,4.144682,-73.63076,Comuna 2,Basuras,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1507,2026-09-04 12:43:23,4.122374,-73.653941,Comuna 5,Otro,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/otro.png,,
 CE-2026-1516,2026-08-03 18:35:23,4.120156,-73.62511,Comuna 5,Alumbrado público,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
-CE-2026-1920,2026-10-14 18:18:23,4.152151,-73.618993,Comuna 9,Vías,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-10-31 18:18:23
+CE-2026-1920,2026-10-14 18:18:23,4.152151,-73.618993,Comuna 9,Vías,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-10-29 18:18:23
 CE-2026-1781,2026-09-06 16:08:23,4.097126,-73.651716,Comuna 8,Alumbrado público,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-09-20 16:08:23
 CE-2026-1264,2026-09-12 16:55:23,4.138303,-73.612027,Comuna 4,Alumbrado público,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1817,2026-10-24 10:07:23,4.081202,-73.656851,Comuna 8,Alumbrado público,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
@@ -434,7 +434,7 @@ CE-2026-1360,2026-09-11 07:10:23,4.122904,-73.626213,Comuna 5,Basuras,App Ciudad
 CE-2026-1354,2026-08-11 17:35:23,4.112122,-73.638941,Comuna 5,Basuras,WhatsApp,Programado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1456,2026-08-13 20:04:23,4.107417,-73.629159,Comuna 5,Alumbrado público,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1278,2026-09-08 05:26:23,4.139621,-73.608408,Comuna 4,Alumbrado público,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
-CE-2026-1012,2026-10-29 14:15:23,4.157989,-73.639649,Comuna 1,Alumbrado público,Físico/PQRSD Telefónico,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-11-13 14:15:23
+CE-2026-1012,2026-10-29 14:15:23,4.157989,-73.639649,Comuna 1,Alumbrado público,Físico/PQRSD Telefónico,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-10-30 14:15:23
 CE-2026-1182,2026-08-02 11:17:23,4.123722,-73.624365,Comuna 4,Vías,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1368,2026-08-05 20:42:23,4.122726,-73.650499,Comuna 5,Vías,Portal Web,Programado,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1881,2026-09-26 17:12:23,4.152416,-73.616829,Comuna 9,Vías,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
@@ -461,7 +461,7 @@ CE-2026-1375,2026-09-29 19:31:23,4.118756,-73.63145,Comuna 5,Basuras,WhatsApp,En
 CE-2026-1412,2026-08-04 12:31:23,4.129695,-73.649777,Comuna 5,Vías,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1074,2026-08-02 18:52:23,4.146424,-73.636997,Comuna 2,Alumbrado público,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-08-10 18:52:23
 CE-2026-1113,2026-10-15 03:10:23,4.14774,-73.610542,Comuna 3,Alumbrado público,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
-CE-2026-1598,2026-10-26 13:51:23,4.109427,-73.6146,Comuna 7,Basuras,Portal Web,Resuelto,SIMULADO_ACADEMICO,assets/img/basuras.png,,2026-11-14 13:51:23
+CE-2026-1598,2026-10-26 13:51:23,4.109427,-73.6146,Comuna 7,Basuras,Portal Web,Resuelto,SIMULADO_ACADEMICO,assets/img/basuras.png,,2026-10-29 13:51:23
 CE-2026-1961,2026-10-07 09:56:23,4.164828,-73.644157,Comuna 10,Vías,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-10-13 09:56:23
 CE-2026-1390,2026-10-11 21:03:23,4.124513,-73.6359,Comuna 5,Basuras,Portal Web,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1104,2026-08-26 06:17:23,4.138604,-73.612411,Comuna 3,Alumbrado público,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
@@ -473,7 +473,7 @@ CE-2026-1409,2026-09-29 15:06:23,4.114773,-73.63176,Comuna 5,Basuras,Portal Web,
 CE-2026-1092,2026-09-16 06:08:23,4.139645,-73.61835,Comuna 3,Vías,WhatsApp,En revisión,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1930,2026-10-27 13:37:23,4.167233,-73.595437,Comuna 9,Alumbrado público,Portal Web,Reportado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1089,2026-08-01 16:05:23,4.142322,-73.639448,Comuna 2,Basuras,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/basuras.png,,2026-08-29 16:05:23
-CE-2026-1336,2026-10-28 20:19:23,4.120198,-73.639189,Comuna 5,Alumbrado público,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-11-17 20:19:23
+CE-2026-1336,2026-10-28 20:19:23,4.120198,-73.639189,Comuna 5,Alumbrado público,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-10-29 20:19:23
 CE-2026-1988,2026-07-31 22:21:23,4.161416,-73.664386,Comuna 10,Alumbrado público,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-08-14 22:21:23
 CE-2026-1921,2026-08-19 07:35:23,4.151426,-73.609864,Comuna 9,Basuras,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1933,2026-10-05 08:00:23,4.168723,-73.64255,Comuna 10,Basuras,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
@@ -488,7 +488,7 @@ CE-2026-1043,2026-08-22 13:52:23,4.158912,-73.633435,Comuna 1,Alumbrado público
 CE-2026-1042,2026-10-17 17:19:23,4.148413,-73.636581,Comuna 1,Alcantarillado,WhatsApp,Programado,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,
 CE-2026-1329,2026-08-20 02:57:23,4.11698,-73.653131,Comuna 5,Basuras,Portal Web,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1167,2026-08-31 09:25:23,4.127029,-73.623357,Comuna 4,Vías,Físico/PQRSD Telefónico,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
-CE-2026-1497,2026-10-09 03:19:23,4.125436,-73.648879,Comuna 5,Vías,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-11-05 03:19:23
+CE-2026-1497,2026-10-09 03:19:23,4.125436,-73.648879,Comuna 5,Vías,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-10-14 03:19:23
 CE-2026-1876,2026-10-22 17:20:23,4.165178,-73.608065,Comuna 9,Vías,WhatsApp,En revisión,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1597,2026-08-11 06:51:23,4.095875,-73.585635,Comuna 7,Alumbrado público,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-09-18 06:51:23
 CE-2026-1756,2026-09-28 12:54:23,4.085855,-73.657967,Comuna 8,Vías,Físico/PQRSD Telefónico,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-10-16 12:54:23
@@ -526,7 +526,7 @@ CE-2026-1340,2026-09-19 09:57:23,4.128888,-73.641506,Comuna 5,Alcantarillado,Wha
 CE-2026-1431,2026-09-17 11:48:23,4.113875,-73.625945,Comuna 5,Vías,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1551,2026-09-09 14:27:23,4.1347,-73.650554,Comuna 6,Basuras,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1833,2026-09-07 06:50:23,4.163137,-73.602457,Comuna 9,Basuras,WhatsApp,En revisión,SIMULADO_ACADEMICO,assets/img/basuras.png,,
-CE-2026-1203,2026-10-27 17:17:23,4.13693,-73.619875,Comuna 4,Alcantarillado,Físico/PQRSD Telefónico,Resuelto,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,2026-11-09 17:17:23
+CE-2026-1203,2026-10-27 17:17:23,4.13693,-73.619875,Comuna 4,Alcantarillado,Físico/PQRSD Telefónico,Resuelto,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,2026-10-29 17:17:23
 CE-2026-1630,2026-09-26 07:26:23,4.123514,-73.613186,Comuna 7,Alumbrado público,Físico/PQRSD Telefónico,En revisión,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1093,2026-08-30 21:37:23,4.147089,-73.622429,Comuna 3,Alumbrado público,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1558,2026-10-05 04:58:23,4.116352,-73.594568,Comuna 7,Basuras,WhatsApp,En revisión,SIMULADO_ACADEMICO,assets/img/basuras.png,,
@@ -542,7 +542,7 @@ CE-2026-1446,2026-08-13 02:16:23,4.118945,-73.641818,Comuna 5,Basuras,App Ciudad
 CE-2026-1188,2026-08-09 03:59:23,4.138459,-73.619223,Comuna 4,Basuras,Portal Web,En revisión,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1271,2026-10-09 23:59:23,4.130168,-73.615268,Comuna 4,Basuras,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1236,2026-08-05 11:42:23,4.123552,-73.609163,Comuna 4,Alcantarillado,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,
-CE-2026-1487,2026-10-28 15:55:23,4.11618,-73.632166,Comuna 5,Alumbrado público,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-12-01 15:55:23
+CE-2026-1487,2026-10-28 15:55:23,4.11618,-73.632166,Comuna 5,Alumbrado público,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-10-29 15:55:23
 CE-2026-1117,2026-08-08 20:43:23,4.150616,-73.620533,Comuna 3,Vías,Portal Web,Programado,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1943,2026-10-24 07:08:23,4.175971,-73.654628,Comuna 10,Alumbrado público,WhatsApp,Programado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1512,2026-10-17 04:11:23,4.108313,-73.645192,Comuna 5,Alumbrado público,Portal Web,Reportado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
@@ -558,7 +558,7 @@ CE-2026-1912,2026-10-20 17:44:23,4.171249,-73.600413,Comuna 9,Alumbrado público
 CE-2026-1369,2026-09-01 02:27:23,4.107672,-73.64526,Comuna 5,Alumbrado público,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1268,2026-10-25 09:35:23,4.132681,-73.62293,Comuna 4,Vías,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1046,2026-09-04 17:29:23,4.151741,-73.638587,Comuna 1,Otro,Físico/PQRSD Telefónico,Resuelto,SIMULADO_ACADEMICO,assets/img/otro.png,,2026-09-20 17:29:23
-CE-2026-1349,2026-09-29 00:00:23,4.128361,-73.64056,Comuna 5,Vías,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-11-04 00:00:23
+CE-2026-1349,2026-09-29 00:00:23,4.128361,-73.64056,Comuna 5,Vías,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-10-12 00:00:23
 CE-2026-1195,2026-10-10 05:52:23,4.134882,-73.619045,Comuna 4,Otro,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/otro.png,,
 CE-2026-1999,2026-08-15 12:42:23,4.165467,-73.668193,Comuna 10,Alumbrado público,Portal Web,En revisión,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1834,2026-08-15 19:54:23,4.167446,-73.606088,Comuna 9,Vías,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
@@ -582,7 +582,7 @@ CE-2026-1625,2026-09-28 04:21:23,4.096168,-73.594989,Comuna 7,Vías,App Ciudad E
 CE-2026-1320,2026-10-02 17:02:23,4.110682,-73.653267,Comuna 5,Alcantarillado,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,2026-10-12 17:02:23
 CE-2026-1019,2026-08-28 07:08:23,4.151495,-73.633416,Comuna 1,Basuras,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1809,2026-08-21 08:16:23,4.09882,-73.645094,Comuna 8,Basuras,WhatsApp,En revisión,SIMULADO_ACADEMICO,assets/img/basuras.png,,
-CE-2026-1790,2026-10-13 03:22:23,4.097138,-73.662229,Comuna 8,Basuras,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/basuras.png,,2026-11-10 03:22:23
+CE-2026-1790,2026-10-13 03:22:23,4.097138,-73.662229,Comuna 8,Basuras,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/basuras.png,,2026-10-27 03:22:23
 CE-2026-1808,2026-09-28 07:17:23,4.103778,-73.658627,Comuna 8,Basuras,Portal Web,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1407,2026-08-12 05:10:23,4.118667,-73.646104,Comuna 5,Basuras,WhatsApp,En revisión,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1537,2026-08-01 18:05:23,4.137667,-73.640864,Comuna 6,Vías,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/vias.png,,
@@ -594,7 +594,7 @@ CE-2026-1828,2026-08-29 09:08:23,4.172932,-73.601744,Comuna 9,Alcantarillado,Wha
 CE-2026-1667,2026-09-28 22:13:23,4.096127,-73.600204,Comuna 7,Vías,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1754,2026-09-18 16:02:23,4.106686,-73.649258,Comuna 8,Alumbrado público,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1858,2026-09-20 06:14:23,4.152586,-73.603547,Comuna 9,Alumbrado público,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-10-16 06:14:23
-CE-2026-1154,2026-10-24 12:15:23,4.12929,-73.622866,Comuna 4,Alcantarillado,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,2026-10-30 12:15:23
+CE-2026-1154,2026-10-24 12:15:23,4.12929,-73.622866,Comuna 4,Alcantarillado,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,2026-10-29 12:15:23
 CE-2026-1287,2026-09-06 13:14:23,4.12338,-73.610079,Comuna 4,Alcantarillado,Portal Web,En revisión,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,
 CE-2026-1602,2026-10-18 21:59:23,4.106935,-73.606776,Comuna 7,Vías,App Ciudad Escucha,Programado,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1569,2026-09-08 15:41:23,4.122237,-73.602075,Comuna 7,Vías,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
@@ -622,13 +622,13 @@ CE-2026-1045,2026-09-29 08:36:23,4.15595,-73.637159,Comuna 1,Vías,WhatsApp,Repo
 CE-2026-1909,2026-09-19 09:36:23,4.157114,-73.608079,Comuna 9,Basuras,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1157,2026-08-08 15:25:23,4.119676,-73.610115,Comuna 4,Alumbrado público,WhatsApp,En revisión,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1851,2026-08-22 16:44:23,4.163914,-73.605386,Comuna 9,Alumbrado público,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
-CE-2026-1171,2026-10-18 22:26:23,4.11836,-73.613981,Comuna 4,Alumbrado público,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-11-20 22:26:23
+CE-2026-1171,2026-10-18 22:26:23,4.11836,-73.613981,Comuna 4,Alumbrado público,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-10-29 22:26:23
 CE-2026-1016,2026-08-21 19:28:23,4.151651,-73.632967,Comuna 1,Otro,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/otro.png,,
 CE-2026-1511,2026-09-25 06:39:23,4.125562,-73.643962,Comuna 5,Vías,Portal Web,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-09-26 06:39:23
 CE-2026-1048,2026-08-29 19:01:23,4.154561,-73.643382,Comuna 1,Alumbrado público,Físico/PQRSD Telefónico,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-09-30 19:01:23
-CE-2026-1971,2026-10-05 00:40:23,4.176998,-73.653848,Comuna 10,Vías,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-11-06 00:40:23
+CE-2026-1971,2026-10-05 00:40:23,4.176998,-73.653848,Comuna 10,Vías,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-10-16 00:40:23
 CE-2026-1940,2026-09-06 23:06:23,4.175739,-73.642136,Comuna 10,Vías,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
-CE-2026-1515,2026-10-13 15:41:23,4.117177,-73.6287,Comuna 5,Basuras,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/basuras.png,,2026-11-14 15:41:23
+CE-2026-1515,2026-10-13 15:41:23,4.117177,-73.6287,Comuna 5,Basuras,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/basuras.png,,2026-10-29 15:41:23
 CE-2026-1952,2026-09-26 16:29:23,4.15618,-73.668385,Comuna 10,Vías,Portal Web,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-10-23 16:29:23
 CE-2026-1480,2026-10-20 02:51:23,4.111578,-73.63729,Comuna 5,Alumbrado público,Portal Web,Reportado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1283,2026-09-26 18:42:23,4.127971,-73.618443,Comuna 4,Vías,App Ciudad Escucha,Programado,SIMULADO_ACADEMICO,assets/img/vias.png,,
@@ -657,7 +657,7 @@ CE-2026-1969,2026-08-11 01:07:23,4.168014,-73.647363,Comuna 10,Vías,WhatsApp,En
 CE-2026-1830,2026-08-01 02:37:23,4.153582,-73.603976,Comuna 9,Alumbrado público,Físico/PQRSD Telefónico,En revisión,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1579,2026-09-19 03:37:23,4.114218,-73.605407,Comuna 7,Basuras,WhatsApp,En revisión,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1968,2026-08-16 05:22:23,4.163602,-73.640393,Comuna 10,Otro,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/otro.png,,2026-08-28 05:22:23
-CE-2026-1162,2026-10-07 01:01:23,4.117871,-73.619872,Comuna 4,Vías,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-11-08 01:01:23
+CE-2026-1162,2026-10-07 01:01:23,4.117871,-73.619872,Comuna 4,Vías,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-10-25 01:01:23
 CE-2026-1908,2026-09-17 05:18:23,4.150642,-73.617995,Comuna 9,Alumbrado público,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1152,2026-09-06 10:05:23,4.138234,-73.621283,Comuna 4,Alumbrado público,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-09-29 10:05:23
 CE-2026-1801,2026-08-24 00:32:23,4.086615,-73.642384,Comuna 8,Basuras,Portal Web,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
@@ -666,7 +666,7 @@ CE-2026-1755,2026-10-07 05:42:23,4.091144,-73.641743,Comuna 8,Alumbrado público
 CE-2026-1111,2026-08-03 15:43:23,4.145323,-73.617306,Comuna 3,Vías,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1226,2026-09-15 14:45:23,4.137347,-73.60591,Comuna 4,Vías,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1688,2026-08-15 00:25:23,4.104759,-73.581224,Comuna 7,Alcantarillado,Portal Web,Resuelto,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,2026-09-03 00:25:23
-CE-2026-1103,2026-10-09 19:11:23,4.151578,-73.611211,Comuna 3,Otro,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/otro.png,,2026-10-30 19:11:23
+CE-2026-1103,2026-10-09 19:11:23,4.151578,-73.611211,Comuna 3,Otro,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/otro.png,,2026-10-29 19:11:23
 CE-2026-1421,2026-08-31 09:31:23,4.107603,-73.631923,Comuna 5,Vías,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1419,2026-08-02 13:17:23,4.129781,-73.625964,Comuna 5,Vías,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1750,2026-08-08 23:57:23,4.089416,-73.65338,Comuna 8,Basuras,Portal Web,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
@@ -747,7 +747,7 @@ CE-2026-1219,2026-10-10 00:42:23,4.138496,-73.618298,Comuna 4,Alcantarillado,Wha
 CE-2026-1641,2026-08-03 18:07:23,4.107583,-73.604998,Comuna 7,Vías,Portal Web,Programado,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1915,2026-10-11 18:48:23,4.174087,-73.616891,Comuna 9,Vías,Físico/PQRSD Telefónico,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1752,2026-10-21 15:37:23,4.105203,-73.664425,Comuna 8,Alumbrado público,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-10-25 15:37:23
-CE-2026-1806,2026-10-07 02:59:23,4.08002,-73.663332,Comuna 8,Alcantarillado,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,2026-11-07 02:59:23
+CE-2026-1806,2026-10-07 02:59:23,4.08002,-73.663332,Comuna 8,Alcantarillado,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,2026-10-28 02:59:23
 CE-2026-1919,2026-09-11 22:25:23,4.163534,-73.601948,Comuna 9,Alcantarillado,Portal Web,Programado,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,
 CE-2026-1624,2026-10-21 04:19:23,4.101626,-73.593129,Comuna 7,Alcantarillado,Portal Web,En revisión,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,
 CE-2026-1874,2026-10-14 10:58:23,4.163722,-73.596136,Comuna 9,Vías,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
@@ -848,7 +848,7 @@ CE-2026-1727,2026-08-04 00:08:23,4.094536,-73.648465,Comuna 8,Vías,WhatsApp,En 
 CE-2026-1573,2026-10-01 07:25:23,4.124319,-73.589999,Comuna 7,Alcantarillado,Portal Web,Programado,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,
 CE-2026-1406,2026-09-11 04:01:23,4.120177,-73.644402,Comuna 5,Basuras,Portal Web,Resuelto,SIMULADO_ACADEMICO,assets/img/basuras.png,,2026-09-25 04:01:23
 CE-2026-1502,2026-10-16 15:04:23,4.124751,-73.644338,Comuna 5,Basuras,WhatsApp,Programado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
-CE-2026-1047,2026-10-28 14:39:23,4.154241,-73.644619,Comuna 1,Alumbrado público,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-11-15 14:39:23
+CE-2026-1047,2026-10-28 14:39:23,4.154241,-73.644619,Comuna 1,Alumbrado público,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-10-29 14:39:23
 CE-2026-1032,2026-08-30 05:31:23,4.148781,-73.644047,Comuna 1,Alcantarillado,WhatsApp,En revisión,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,
 CE-2026-1779,2026-09-15 18:21:23,4.09985,-73.654801,Comuna 8,Alcantarillado,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,
 CE-2026-1839,2026-10-04 14:43:23,4.173648,-73.618578,Comuna 9,Alumbrado público,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
@@ -860,7 +860,7 @@ CE-2026-1230,2026-09-21 20:29:23,4.121212,-73.602636,Comuna 4,Vías,Físico/PQRS
 CE-2026-1489,2026-08-05 03:33:23,4.117892,-73.641153,Comuna 5,Alcantarillado,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,2026-09-14 03:33:23
 CE-2026-1772,2026-08-12 10:23:23,4.097032,-73.636099,Comuna 8,Basuras,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1378,2026-10-16 23:33:23,4.128785,-73.631393,Comuna 5,Basuras,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/basuras.png,,
-CE-2026-1288,2026-10-24 17:15:23,4.135071,-73.616644,Comuna 4,Alumbrado público,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-11-02 17:15:23
+CE-2026-1288,2026-10-24 17:15:23,4.135071,-73.616644,Comuna 4,Alumbrado público,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-10-29 17:15:23
 CE-2026-1418,2026-09-05 14:37:23,4.122311,-73.652535,Comuna 5,Alumbrado público,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1674,2026-08-16 11:10:23,4.124192,-73.604939,Comuna 7,Alcantarillado,App Ciudad Escucha,Programado,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,
 CE-2026-1391,2026-09-14 13:50:23,4.11187,-73.636582,Comuna 5,Alcantarillado,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,2026-09-26 13:50:23
@@ -932,14 +932,14 @@ CE-2026-1897,2026-10-17 11:53:23,4.16581,-73.610092,Comuna 9,Alcantarillado,What
 CE-2026-1564,2026-10-05 00:18:23,4.097192,-73.589995,Comuna 7,Otro,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/otro.png,,
 CE-2026-1345,2026-10-01 20:38:23,4.127451,-73.632992,Comuna 5,Alumbrado público,WhatsApp,En revisión,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1776,2026-10-11 14:49:23,4.086895,-73.646319,Comuna 8,Vías,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
-CE-2026-1241,2026-10-24 02:14:23,4.124932,-73.611858,Comuna 4,Alcantarillado,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,2026-11-05 02:14:23
+CE-2026-1241,2026-10-24 02:14:23,4.124932,-73.611858,Comuna 4,Alcantarillado,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,2026-10-30 02:14:23
 CE-2026-1013,2026-09-23 03:10:23,4.150548,-73.640786,Comuna 1,Vías,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1315,2026-10-10 10:52:23,4.122387,-73.65316,Comuna 5,Alcantarillado,App Ciudad Escucha,Programado,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,
 CE-2026-1600,2026-10-20 12:18:23,4.098555,-73.581041,Comuna 7,Vías,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1387,2026-08-14 19:26:23,4.127501,-73.635884,Comuna 5,Alumbrado público,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-09-20 19:26:23
 CE-2026-1273,2026-10-25 08:35:23,4.133411,-73.616108,Comuna 4,Alumbrado público,Portal Web,Programado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1166,2026-08-09 18:41:23,4.118859,-73.610879,Comuna 4,Otro,WhatsApp,En revisión,SIMULADO_ACADEMICO,assets/img/otro.png,,
-CE-2026-1840,2026-10-25 07:44:23,4.157396,-73.600837,Comuna 9,Basuras,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/basuras.png,,2026-11-06 07:44:23
+CE-2026-1840,2026-10-25 07:44:23,4.157396,-73.600837,Comuna 9,Basuras,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/basuras.png,,2026-10-29 07:44:23
 CE-2026-1992,2026-10-07 10:05:23,4.169901,-73.658694,Comuna 10,Vías,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/vias.png,,
 CE-2026-1646,2026-09-06 03:30:23,4.112734,-73.601913,Comuna 7,Alumbrado público,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1818,2026-10-02 16:22:23,4.088744,-73.659282,Comuna 8,Vías,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/vias.png,,
@@ -974,7 +974,7 @@ CE-2026-1191,2026-10-09 19:39:23,4.133528,-73.622397,Comuna 4,Vías,Portal Web,R
 CE-2026-1385,2026-10-15 19:13:23,4.115276,-73.627947,Comuna 5,Basuras,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/basuras.png,,2026-10-21 19:13:23
 CE-2026-1805,2026-08-03 22:46:23,4.087897,-73.642289,Comuna 8,Otro,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/otro.png,,
 CE-2026-1413,2026-09-11 01:51:23,4.108411,-73.652048,Comuna 5,Basuras,Físico/PQRSD Telefónico,En revisión,SIMULADO_ACADEMICO,assets/img/basuras.png,,
-CE-2026-1491,2026-10-29 11:08:23,4.117424,-73.6476,Comuna 5,Alumbrado público,Portal Web,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-11-21 11:08:23
+CE-2026-1491,2026-10-29 11:08:23,4.117424,-73.6476,Comuna 5,Alumbrado público,Portal Web,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-10-30 11:08:23
 CE-2026-1343,2026-10-02 03:08:23,4.105189,-73.642576,Comuna 5,Alumbrado público,App Ciudad Escucha,Programado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1769,2026-08-20 19:05:23,4.085893,-73.642828,Comuna 8,Alcantarillado,Físico/PQRSD Telefónico,Reportado,SIMULADO_ACADEMICO,assets/img/alcantarillado.png,,
 CE-2026-1308,2026-08-31 23:47:23,4.125446,-73.641815,Comuna 5,Basuras,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
@@ -987,12 +987,12 @@ CE-2026-1372,2026-08-17 11:48:23,4.129073,-73.643723,Comuna 5,Alumbrado público
 CE-2026-1087,2026-09-17 01:09:23,4.138448,-73.639827,Comuna 2,Otro,Físico/PQRSD Telefónico,Programado,SIMULADO_ACADEMICO,assets/img/otro.png,,
 CE-2026-1458,2026-09-30 11:59:23,4.123904,-73.627432,Comuna 5,Otro,WhatsApp,En revisión,SIMULADO_ACADEMICO,assets/img/otro.png,,
 CE-2026-1330,2026-08-09 09:48:23,4.105641,-73.639717,Comuna 5,Alumbrado público,App Ciudad Escucha,Programado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
-CE-2026-1214,2026-10-10 19:58:23,4.124597,-73.604564,Comuna 4,Otro,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/otro.png,,2026-11-11 19:58:23
+CE-2026-1214,2026-10-10 19:58:23,4.124597,-73.604564,Comuna 4,Otro,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/otro.png,,2026-10-29 19:58:23
 CE-2026-1466,2026-08-07 00:49:23,4.129812,-73.649677,Comuna 5,Otro,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/otro.png,,2026-09-16 00:49:23
 CE-2026-1121,2026-10-02 02:57:23,4.150464,-73.613368,Comuna 3,Vías,WhatsApp,Resuelto,SIMULADO_ACADEMICO,assets/img/vias.png,,2026-10-29 02:57:23
 CE-2026-1614,2026-08-19 03:59:23,4.118626,-73.601121,Comuna 7,Basuras,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1020,2026-08-13 22:48:23,4.155342,-73.642019,Comuna 1,Basuras,WhatsApp,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
-CE-2026-1700,2026-10-18 09:34:23,4.097354,-73.581934,Comuna 7,Alumbrado público,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-11-04 09:34:23
+CE-2026-1700,2026-10-18 09:34:23,4.097354,-73.581934,Comuna 7,Alumbrado público,App Ciudad Escucha,Resuelto,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,2026-10-29 09:34:23
 CE-2026-1071,2026-09-18 15:59:23,4.144018,-73.635093,Comuna 2,Alumbrado público,WhatsApp,Programado,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,
 CE-2026-1106,2026-10-23 08:23:23,4.145388,-73.627525,Comuna 3,Basuras,App Ciudad Escucha,Reportado,SIMULADO_ACADEMICO,assets/img/basuras.png,,
 CE-2026-1270,2026-10-29 05:44:23,4.129407,-73.618866,Comuna 4,Alumbrado público,App Ciudad Escucha,En revisión,SIMULADO_ACADEMICO,assets/img/alumbrado.png,,

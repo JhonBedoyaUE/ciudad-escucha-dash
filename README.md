@@ -17,10 +17,12 @@ espacio público del municipio de Villavicencio, Meta, Colombia.
 | 🛑 **Capa de veredas** | Contornos del shapefile DANE 2024 (58 veredas de Villavicencio filtradas con **QGIS MCP**) |
 | 📸 **Detalle con foto** | Clic en un punto → modal con imagen, comuna, canal, fecha, estado y descripción |
 | 📝 **Formulario de reporte** | Modal con tipo, comuna, sugerencia de coordenadas 🎲, canal, estado, descripción y **subida de foto** (redimensionada con Pillow) |
-| ✍️ **Cambio de estado** | Desde el modal de detalle: Reportado → En revisión → Programado → Resuelto (persiste en CSV) |
-| 📊 **KPIs** | Total, comunas activas, tipo predominante, top comuna, % resueltos, última actualización |
-| 📈 **Gráficas** | Barras por tipo, dona de canales, área de evolución diaria |
-| 🎚️ **Filtros** | Comuna, tipo, canal, estado y rango de fechas |
+| ✍️ **Cambio de estado** | Desde el modal de detalle: Reportado → En revisión → Programado → Resuelto (persiste en CSV y fija `resuelta_en`) |
+| 🎚️ **Barra de filtros** | Comuna, tipo, canal, estado y rango de fechas en una barra horizontal con **flex-wrap** (se reparte el ancho y salta de línea en pantallas angostas) |
+| 🔢 **Resumen compacto** | Total de reportes, % resueltos, pendientes y comunas como *chips* (sin tarjetas KPI) |
+| 📊 **Gráficas del panel** | Reportes por tipo de daño y Canal de reporte, apiladas a la derecha del mapa |
+| 📈 **Evolución acumulada** | Reportes acumulados, resueltos acumulados y **pendientes (saldo)** calculados con la fecha `resuelta_en` de cada punto |
+| 🧮 **Gestión** | Entradas y salidas por semana, reportes por comuna y tiempo medio de resolución por tipo |
 
 ## 🚀 Arranque local
 

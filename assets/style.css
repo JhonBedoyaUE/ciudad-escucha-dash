@@ -46,6 +46,13 @@ body {
     color: #aebfd2 !important;
 }
 html.light .ce-navbar { box-shadow: 0 2px 10px rgba(16,35,58,.28); }
+/* Botón de tema: el navbar siempre es oscuro, así que el icono va claro en ambos temas */
+.ce-navbar #btn_tema {
+    background: transparent !important;
+    border: 1px solid rgba(219,230,242,.45) !important;
+    color: #dbe6f2 !important;
+}
+.ce-navbar #btn_tema:hover { background: rgba(219,230,242,.14) !important; }
 
 /* ---------- Superficies (cards) ---------- */
 .surface {
@@ -74,6 +81,104 @@ html.light .btn-outline-secondary:hover { background: #e2e8f0; color: #1e293b; }
 html.light .js-plotly-plot .plotly text { fill: #37474f !important; }
 html.light .js-plotly-plot .plotly .xtick text,
 html.light .js-plotly-plot .plotly .ytick text { fill: #5f6f7e !important; }
+
+/* ---------- Barra de filtros (flex-wrap) ---------- */
+.ce-filtros { display: flex; flex-wrap: wrap; gap: .55rem 1rem; align-items: flex-end; }
+.ce-f-item { flex: 1 1 168px; min-width: 150px; }
+.ce-f-item .Select, .ce-f-item .Select-control { width: 100%; }
+.ce-f-fechas { flex: 1 1 330px; min-width: 300px; }
+.ce-f-fechas .DateRangePicker { width: 100%; }
+.ce-f-fechas .DateRangePickerInput {
+    width: 100%; display: flex; align-items: center;
+    background: var(--ce-surface-2) !important;
+    border: 1px solid var(--ce-border) !important; border-radius: 6px;
+}
+.ce-f-fechas .DateInput { width: 44%; background: transparent !important; }
+.ce-f-fechas .DateInput_input {
+    background: transparent !important; color: var(--ce-text) !important;
+    font-size: .78rem; padding: .35rem .45rem; border-bottom: 0 !important;
+}
+.ce-f-fechas .DateRangePickerInput_arrow { color: var(--ce-text-muted); }
+.ce-f-fechas .DateRangePickerInput_arrow svg { fill: var(--ce-text-muted); }
+.ce-f-btn { flex: 0 0 auto; }
+.ce-f-titulo { font-weight: 700; font-size: .8rem; }
+.ce-f-label {
+    display: block; margin-bottom: .15rem; font-size: .64rem;
+    letter-spacing: .06em; text-transform: uppercase; color: var(--ce-text-muted);
+}
+.ce-resumen { display: flex; flex-wrap: wrap; gap: .3rem .4rem; justify-content: flex-end; }
+.ce-chip {
+    font-size: .71rem; padding: .16rem .55rem; border-radius: 999px;
+    background: rgba(52,152,219,.12); border: 1px solid var(--ce-border);
+    white-space: nowrap; color: var(--ce-text);
+}
+html.light .ce-chip { background: rgba(52,152,219,.08); }
+
+/* ---------- Componentes nuevos de Dash 4: dcc.Dropdown ---------- */
+.dash-dropdown {
+    background: var(--ce-surface-2) !important;
+    color: var(--ce-text) !important;
+    border: 1px solid var(--ce-border) !important;
+    border-radius: 6px !important;
+    min-height: 34px;
+}
+.dash-dropdown:hover { border-color: #5aa7e8 !important; }
+.dash-dropdown-value, .dash-dropdown-value-item { color: var(--ce-text) !important; font-size: .82rem; }
+.dash-dropdown-trigger-icon { color: var(--ce-text-muted); }
+.dash-dropdown-content {
+    background: var(--ce-surface) !important;
+    color: var(--ce-text) !important;
+    border: 1px solid var(--ce-border) !important;
+    border-radius: 8px;
+    box-shadow: 0 10px 26px rgba(0,0,0,.35);
+    z-index: 4000;
+}
+.dash-dropdown-search {
+    background: var(--ce-surface-2) !important;
+    color: var(--ce-text) !important;
+    border: 1px solid var(--ce-border) !important;
+    border-radius: 5px;
+}
+.dash-dropdown-search-icon { color: var(--ce-text-muted); }
+.dash-options-list-option, .dash-options-list-option-text { color: var(--ce-text) !important; }
+.dash-options-list-option:hover, .dash-options-list-option.selected {
+    background: rgba(52,152,219,.20) !important;
+}
+html.light .dash-options-list-option:hover,
+html.light .dash-options-list-option.selected { background: rgba(52,152,219,.12) !important; }
+
+/* ---------- Componentes nuevos de Dash 4: dcc.DatePickerRange ---------- */
+.dash-datepicker-input-wrapper {
+    background: var(--ce-surface-2) !important;
+    border: 1px solid var(--ce-border) !important;
+    border-radius: 6px;
+    color: var(--ce-text) !important;
+    padding: .18rem .45rem;
+    min-height: 34px;
+}
+.dash-datepicker-input { background: transparent !important; color: var(--ce-text) !important; }
+.dash-datepicker-input::placeholder { color: var(--ce-text-muted) !important; }
+.dash-datepicker-caret-icon, .dash-datepicker-range-arrow { color: var(--ce-text-muted); }
+.dash-datepicker-content {
+    background: var(--ce-surface) !important;
+    color: var(--ce-text) !important;
+    border: 1px solid var(--ce-border) !important;
+    border-radius: 8px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.4);
+    padding: .5rem;
+    z-index: 4000;
+}
+.dash-datepicker-calendar, .dash-datepicker-calendar th,
+.dash-datepicker-calendar-month-header { color: var(--ce-text) !important; }
+.dash-datepicker-calendar-date-inside { color: var(--ce-text) !important; }
+.dash-datepicker-calendar-date-highlighted { background: rgba(52,152,219,.22) !important; }
+.dash-datepicker-calendar-date-selected,
+.dash-datepicker-calendar-date-selected.dash-datepicker-calendar-date-highlighted {
+    background: #1f7ac0 !important; color: #fff !important;
+}
+.dash-datepicker-month-nav { color: var(--ce-text) !important; }
+.dash-input-element { background: var(--ce-surface-2) !important; color: var(--ce-text) !important; }
+.dash-input-stepper { color: var(--ce-text-muted) !important; }
 
 /* ---------- Dropdowns dcc ---------- */
 .Select-control, .Select-menu-outer, .Select-menu {

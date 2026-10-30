@@ -2,10 +2,12 @@
 """
 Dashboard Ciudad Escucha — versión Dash/Plotly
 Sistema de reporte de daños en espacio público (datos SIMULADOS).
-- Mapa interactivo OSM con puntos-círculo por tipo de daño
+- Barra de filtros horizontal (flex-wrap) en lugar de columna lateral
+- Mapa interactivo (Carto/Positron) con puntos-círculo por tipo de daño
 - Límites de veredas DANE 2024 (GeoJSON filtrado en QGIS)
 - Detalle del reporte con imagen al hacer clic en un punto
 - Formulario para crear nuevos reportes (con subida de foto)
+- Evolución acumulada (reportes / resueltos / pendientes) con `resuelta_en`
 Autor: Jhon Bedoya — Habilidades Gerenciales
 """
 import base64
@@ -13,6 +15,7 @@ import io
 import json
 import os
 import random
+import time
 
 import dash_bootstrap_components as dbc
 import pandas as pd
@@ -35,6 +38,12 @@ COLOR_TIPO = {
     "Alcantarillado": "#E67E22",
     "Otro": "#95A5A6",
 }
+COLOR_ESTADO = {
+    "Reportado": "#8e44ad",
+    "En revisión": "#f39c12",
+    "Programado": "#2980b9",
+    "Resuelto": "#27ae60",
+}
 IMG_TIPO = {
     "Vías": "vias.png",
     "Alumbrado público": "alumbrado.png",
@@ -43,18 +52,24 @@ IMG_TIPO = {
     "Otro": "otro.png",
 }
 
+# Colores neutros que funcionan en tema oscuro y claro
+GRID = "rgba(148,163,184,.20)"
+TRANS = "rgba(0,0,0,0)"
+
 # ------------------------------------------------------------------
 # Datos
 # ------------------------------------------------------------------
 def cargar_df():
     df = pd.read_csv(DATA_CSV, encoding="utf-8")
     df["fecha_reporte"] = pd.to_datetime(df["fecha_reporte"])
-    if "foto_url" not in df.columns:
-        df["foto_url"] = ""
-    if "descripcion" not in df.columns:
-        df["descripcion"] = ""
-    df["foto_url"] = df["foto_url"].fillna("")
-    df["descripcion"] = df["descripcion"].fillna("")
+    for col in ("foto_url", "descripcion", "resuelta_en"):
+        if col not in df.columns:
+            df[col] = ""
+    df["foto_url"] = df["foto_url"].fillna("").astype(str)
+    df["descripcion"] = df["descripcion"].fillna("").astype(str)
+    # pandas lee las celdas vacías como NaN; `resuelta_en` se necesita como
+    # fecha para calcular el saldo de pendientes en cada punto del tiempo.
+    df["resuelta_en"] = pd.to_datetime(df["resuelta_en"], errors="coerce")
     m = df["foto_url"] == ""
     df.loc[m, "foto_url"] = df.loc[m, "tipo_dano"].map(
         lambda t: f"assets/img/{IMG_TIPO.get(t, 'otro.png')}")
@@ -66,10 +81,26 @@ def cargar_veredas_geojson():
         return json.load(f)
 
 
-def option_list(columna, valor_todos):
-    df = cargar_df()
+def option_list(df, columna, valor_todos):
     return ([{"label": valor_todos, "value": valor_todos}] +
             [{"label": str(v), "value": v} for v in sorted(df[columna].unique())])
+
+
+def filtrar(comuna, tipo, canal, estado, fi, ff):
+    df = cargar_df()
+    f = df.copy()
+    if comuna and comuna != "Todas":
+        f = f[f["comuna"] == comuna]
+    if tipo and tipo != "Todos":
+        f = f[f["tipo_dano"] == tipo]
+    if canal and canal != "Todos":
+        f = f[f["canal_reporte"] == canal]
+    if estado and estado != "Todos":
+        f = f[f["estado_gestion"] == estado]
+    if fi and ff:
+        f = f[(f["fecha_reporte"] >= pd.Timestamp(fi)) &
+              (f["fecha_reporte"] < pd.Timestamp(ff) + pd.Timedelta(days=1))]
+    return f
 
 
 def form_nuevo_reporte():
@@ -124,6 +155,54 @@ def form_nuevo_reporte():
     ])
 
 
+def barra_filtros():
+    """Barra de filtros horizontal: los campos se reparten el ancho y saltan de
+    línea (flex-wrap) cuando ya no caben contraídos al mínimo."""
+    return dbc.Card(dbc.CardBody([
+        dbc.Row([
+            dbc.Col(html.Span([html.I(className="fa-solid fa-sliders me-2 text-info"),
+                               "Filtros"], className="ce-f-titulo"),
+                    width="auto"),
+            dbc.Col(html.Div(id="resumen_filtros", className="ce-resumen"),
+                    width="auto", className="ms-auto"),
+        ], className="align-items-center g-2 mb-2"),
+        html.Div([
+            html.Div([html.Label("Comuna", className="ce-f-label"),
+                      dcc.Dropdown(id="f_comuna", clearable=False)], className="ce-f-item"),
+            html.Div([html.Label("Tipo de daño", className="ce-f-label"),
+                      dcc.Dropdown(id="f_tipo", clearable=False)], className="ce-f-item"),
+            html.Div([html.Label("Canal de reporte", className="ce-f-label"),
+                      dcc.Dropdown(id="f_canal", clearable=False)], className="ce-f-item"),
+            html.Div([html.Label("Estado de gestión", className="ce-f-label"),
+                      dcc.Dropdown(id="f_estado", clearable=False)], className="ce-f-item"),
+            html.Div([html.Label("Rango de fechas", className="ce-f-label"),
+                      dcc.DatePickerRange(id="f_fechas", minimum_nights=0,
+                                          initial_visible_month=pd.Timestamp.now(),
+                                          style={"fontSize": ".78rem"})],
+                     className="ce-f-item ce-f-fechas"),
+            html.Div(dbc.Button([html.I(className="fa-solid fa-rotate-left me-1"),
+                                 "Restablecer"], id="btn_reset", color="secondary",
+                                size="sm", outline=True, className="text-nowrap"),
+                     className="ce-f-item ce-f-btn"),
+        ], className="ce-filtros"),
+    ]), className="surface shadow-sm border-0 mb-3")
+
+
+def tarjeta(titulo, icono, graph_id, alto, extra=None):
+    """Tarjeta con cabecera y un dcc.Graph."""
+    return dbc.Card(dbc.CardBody([
+        dbc.Row([
+            dbc.Col(html.Span([html.I(className=f"fa-solid {icono} me-2"), titulo],
+                              style={"font-weight": 700}), width="auto"),
+            dbc.Col(html.Span(extra or "", className="text-muted",
+                              style={"font-size": ".72rem"}),
+                    width="auto", className="ms-auto"),
+        ], className="align-items-center mb-1"),
+        dcc.Graph(id=graph_id, config={"displayModeBar": False},
+                  style={"height": alto}, className="mt-1"),
+    ]), className="surface shadow-sm border-0 mb-3")
+
+
 # ------------------------------------------------------------------
 # App
 # ------------------------------------------------------------------
@@ -168,70 +247,43 @@ app.layout = dbc.Container([
     ),
 
     dbc.Container([
-        dbc.Row(id="kpis", className="g-2 mb-3"),
+        # ---------- Barra de filtros (ocupa el ancho que antes eran las tarjetas) ----------
+        barra_filtros(),
+
+        # ---------- Mapa (25 % más alto) + tipo/canal apilados a la derecha ----------
         dbc.Row([
-            # Filtros
-            dbc.Col(dbc.Card([
-                dbc.CardHeader(html.Span("🎚️ Filtros", style={"font-weight": 600})),
-                dbc.CardBody([
-                    html.Label("Comuna", className="text-muted small mt-1"),
-                    dcc.Dropdown(id="f_comuna", clearable=False, className="mb-2"),
-                    html.Label("Tipo de daño", className="text-muted small"),
-                    dcc.Dropdown(id="f_tipo", clearable=False, className="mb-2"),
-                    html.Label("Canal de reporte", className="text-muted small"),
-                    dcc.Dropdown(id="f_canal", clearable=False, className="mb-2"),
-                    html.Label("Estado de gestión", className="text-muted small"),
-                    dcc.Dropdown(id="f_estado", clearable=False, className="mb-2"),
-                    html.Label("Rango de fechas", className="text-muted small mt-1"),
-                    dcc.DatePickerRange(id="f_fechas", minimum_nights=0, className="mb-2",
-                                        initial_visible_month=pd.Timestamp.now(),
-                                        style={"font-size": ".78rem"}),
-                    dbc.Button([html.I(className="fa-solid fa-rotate-left me-1"), " Restablecer"],
-                               id="btn_reset", color="secondary", size="sm", outline=True, className="mt-2 w-100"),
-                ]),
-            ], className="surface shadow-sm border-0 mb-3"),
-                width=12, lg=3, className="mb-3"),
-            # Mapa + barras y canal
+            dbc.Col(tarjeta("Mapa interactivo", "fa-map-location-dot", "mapa", "70vh",
+                            "Haz clic en un punto 👆 · carto-positron · datos simulados"),
+                    width=12, xl=8, className="mb-0"),
             dbc.Col([
-                dbc.Card(dbc.CardBody([
-                    dbc.Row([
-                        dbc.Col(html.Span("🗺️ Mapa interactivo", style={"font-weight": 700}), width="auto"),
-                        dbc.Col(html.Span("Haz clic en un punto 👆 · Carto/OpenStreetMap · datos simulados",
-                                          className="text-muted", style={"font-size": ".72rem"}),
-                                width="auto", className="ms-auto"),
-                    ], className="align-items-center mb-1"),
-                    dcc.Graph(id="mapa", config={"displayModeBar": False},
-                              style={"height": "56vh"}),
-                ]), className="surface shadow-sm border-0 mb-3"),
-                dbc.Row([
-                    dbc.Col(dbc.Card(dbc.CardBody([html.Span("📊 Reportes por tipo de daño",
-                                                             style={"font-weight": 700}),
-                                                   dcc.Graph(id="g_tipo", config={"displayModeBar": False},
-                                                             style={"height": "26vh"}, className="mt-1")]),
-                                     className="surface shadow-sm border-0 mb-3"),
-                            width=12, md=6),
-                    dbc.Col(dbc.Card(dbc.CardBody([html.Span("📱 Canal de reporte",
-                                                             style={"font-weight": 700}),
-                                                   dcc.Graph(id="g_canal", config={"displayModeBar": False},
-                                                             style={"height": "26vh"}, className="mt-1")]),
-                                     className="surface shadow-sm border-0 mb-3"),
-                            width=12, md=6),
-                ]),
-            ], width=12, lg=9, className="mb-3"),
-        ]),
-        # Temporal a lo ancho
-        dbc.Row(dbc.Col(dbc.Card(dbc.CardBody([html.Span("📈 Evolución diaria de reportes",
-                                                         style={"font-weight": 700}),
-                                               dcc.Graph(id="g_temporal", config={"displayModeBar": False},
-                                                         style={"height": "22vh"}, className="mt-1")]),
-                                className="surface shadow-sm border-0 mb-3"),
-                        width=12)),
-        # Tabla recientes
+                tarjeta("Reportes por tipo de daño", "fa-chart-column", "g_tipo", "32vh"),
+                tarjeta("Canal de reporte", "fa-mobile-screen-button", "g_canal", "32vh"),
+            ], width=12, xl=4),
+        ], className="g-3 mb-3"),
+
+        # ---------- Parte inferior: visible al hacer scroll ----------
+        dbc.Row(dbc.Col(
+            tarjeta("Evolución acumulada: reportes, resueltos y pendientes",
+                    "fa-chart-line", "g_evol", "38vh",
+                    "saldo = reportes creados − resueltos a esa fecha (usa resuelta_en)"),
+                   width=12), className="g-3 mb-3"),
+
+        dbc.Row([
+            dbc.Col(tarjeta("Entradas y salidas por semana", "fa-right-left",
+                            "g_semana", "30vh"), width=12, md=4),
+            dbc.Col(tarjeta("Reportes por comuna", "fa-map", "g_comuna", "30vh"),
+                    width=12, md=4),
+            dbc.Col(tarjeta("Tiempo medio de resolución por tipo", "fa-stopwatch",
+                            "g_resolucion", "30vh"), width=12, md=4),
+        ], className="g-3 mb-3"),
+
+        # ---------- Tabla recientes ----------
         dbc.Row(dbc.Col(dbc.Card([
             dbc.CardHeader(html.Span([html.I(className="fa-solid fa-list me-2"),
                                       "Últimos reportes registrados"])),
             dbc.CardBody(html.Div(id="tabla_recientes")),
         ], className="surface shadow-sm border-0 mb-4"))),
+
         html.Hr(className="border-dark"),
         html.P("🚨 DATOS SIMULADOS · PROYECTO ACADÉMICO · Habilidades Gerenciales · "
                "Autor: Jhon Bedoya (Analista) · Veredas: shapefile DANE 2024 filtrado en QGIS",
@@ -284,68 +336,190 @@ def figura_mapa(df_f):
         showscale=False, hoverinfo="skip",
     ))
     df_m = df_f.copy()
-    df_m["fecha_s"] = df_m["fecha_reporte"].dt.strftime("%Y-%m-%d %H:%M")
-    fig.add_trace(go.Scattermap(
-        lat=df_m["latitud"], lon=df_m["longitud"], mode="markers",
-        marker={"size": 11, "color": df_m["tipo_dano"].map(COLOR_TIPO),
-                "opacity": 0.85},
-        customdata=df_m[["id_reporte", "comuna", "tipo_dano", "canal_reporte",
-                         "estado_gestion", "fecha_s", "descripcion"]].values.tolist(),
-        hovertemplate=("<b>%{customdata[0]}</b><br>"
-                       "Comuna: %{customdata[1]}<br>"
-                       "Tipo: %{customdata[2]}<br>"
-                       "Canal: %{customdata[3]}<br>"
-                       "Estado: <b>%{customdata[4]}</b><br>"
-                       "Fecha: %{customdata[5]}<extra>🔍 clic = detalle con foto</extra>"),
-    ))
+    if len(df_m):
+        df_m["fecha_s"] = df_m["fecha_reporte"].dt.strftime("%Y-%m-%d %H:%M")
+        fig.add_trace(go.Scattermap(
+            lat=df_m["latitud"], lon=df_m["longitud"], mode="markers",
+            marker={"size": 11, "color": df_m["tipo_dano"].map(COLOR_TIPO),
+                    "opacity": 0.85},
+            customdata=df_m[["id_reporte", "comuna", "tipo_dano", "canal_reporte",
+                             "estado_gestion", "fecha_s", "descripcion"]].values.tolist(),
+            hovertemplate=("<b>%{customdata[0]}</b><br>"
+                           "Comuna: %{customdata[1]}<br>"
+                           "Tipo: %{customdata[2]}<br>"
+                           "Canal: %{customdata[3]}<br>"
+                           "Estado: <b>%{customdata[4]}</b><br>"
+                           "Fecha: %{customdata[5]}<extra>🔍 clic = detalle con foto</extra>"),
+        ))
     fig.update_layout(
         margin={"r": 0, "t": 0, "b": 0, "l": 0},
-        paper_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor=TRANS, showlegend=False,
         map={"style": "carto-positron", "center": VILLAVICENCIO, "zoom": 11.35},
     )
     return fig
 
 
+def _fig_vacia(msg="Sin reportes para los filtros seleccionados"):
+    fig = go.Figure()
+    fig.update_layout(margin=dict(l=10, r=10, t=10, b=10), paper_bgcolor=TRANS,
+                      xaxis={"visible": False}, yaxis={"visible": False},
+                      annotations=[{"text": msg, "showarrow": False, "font": {"size": 12},
+                                    "xref": "paper", "yref": "paper", "x": 0.5, "y": 0.5}])
+    return fig
+
+
+def _layout_base(fig, alto, leyenda=False):
+    fig.update_layout(
+        margin=dict(l=38, r=12, t=6, b=6), height=alto,
+        paper_bgcolor=TRANS, plot_bgcolor=TRANS, font={"size": 11},
+        showlegend=leyenda,
+        legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "x": 0,
+                "font": {"size": 10.5}},
+        hovermode="x unified",
+    )
+    fig.update_xaxes(showgrid=False, zeroline=False, title="")
+    fig.update_yaxes(showgrid=True, gridcolor=GRID, gridwidth=0.5, zeroline=False, title="")
+    return fig
+
+
 def barras_tipo(df_f):
-    data = df_f.groupby("tipo_dano", as_index=False).size().rename(columns={"size": "n"})
-    fig = px.bar(data, x="tipo_dano", y="n", color="tipo_dano",
-                 color_discrete_map=COLOR_TIPO)
-    fig.update_traces(marker_line_width=0, width=.55)
-    fig.update_layout(margin=dict(l=15, r=8, t=4, b=0), height=260,
-                      paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                      font={"size": 11},
-                      xaxis={"showgrid": False, "title": "", "tickangle": -15,
-                             "categoryorder": "total descending"},
-                      yaxis={"showgrid": True, "gridcolor": "#2b3441", "gridwidth": .5,
-                             "title": ""},
-                      showlegend=False)
+    if df_f.empty:
+        return _fig_vacia()
+    # Orden fijo por color turístico => mismo orden que la leyenda del mapa
+    data = (df_f.groupby("tipo_dano").size().rename("n").reset_index()
+            .sort_values("n", ascending=True))
+    fig = go.Figure(go.Bar(
+        x=data["n"], y=data["tipo_dano"], orientation="h",
+        marker={"color": data["tipo_dano"].map(COLOR_TIPO), "cornerradius": 5,
+                "line": {"width": 0}},
+        text=data["n"], textposition="outside", cliponaxis=False,
+        hovertemplate="%{y}: <b>%{x}</b> reportes<extra></extra>",
+    ))
+    fig = _layout_base(fig, 250)
+    fig.update_layout(margin=dict(l=98, r=26, t=6, b=6))
+    fig.update_yaxes(showgrid=False)  # categorías en Y: sin líneas sobre las barras
     return fig
 
 
 def dona_canal(df_f):
+    if df_f.empty:
+        return _fig_vacia()
     df_c = df_f.groupby("canal_reporte", as_index=False).size().rename(columns={"size": "n"})
-    fig = px.pie(df_c, values="n", names="canal_reporte", hole=.45)
-    fig.update_traces(textposition="inside", textinfo="label+percent",
-                      textfont={"size": 10},
-                      marker={"line": {"color": "rgba(0,0,0,0)", "width": 1.2}})
-    fig.update_layout(margin=dict(l=8, r=8, t=4, b=4), height=260,
-                      paper_bgcolor="rgba(0,0,0,0)", font={"size": 10.5},
-                      showlegend=False)
+    df_c = df_c.sort_values("n", ascending=False)
+    fig = px.pie(df_c, values="n", names="canal_reporte", hole=0.52)
+    fig.update_traces(
+        textposition="inside", textinfo="percent", textfont={"size": 10},
+        domain={"x": [0, 0.6], "y": [0, 1]},
+        marker={"line": {"color": TRANS, "width": 1.2}},
+        hovertemplate="%{label}: <b>%{value}</b> reportes (%{percent})<extra></extra>",
+    )
+    fig.update_layout(margin=dict(l=4, r=6, t=6, b=6), height=250,
+                      paper_bgcolor=TRANS, plot_bgcolor=TRANS, font={"size": 10.5},
+                      showlegend=True,
+                      legend={"orientation": "v", "x": 0.63, "xanchor": "left",
+                              "y": 0.5, "yanchor": "middle", "font": {"size": 9.5},
+                              "itemwidth": 30, "tracegroupgap": 3})
     return fig
 
 
-def area_temporal(df_f):
-    t = df_f.groupby(df_f["fecha_reporte"].dt.date, as_index=False).size().rename(columns={"size": "n"})
-    fig = go.Figure(go.Scatter(x=t["fecha_reporte"], y=t["n"], line_shape="spline",
-                               mode="lines", fill="tozeroy",
-                               line={"color": "#3498DB", "width": 2},
-                               fillcolor="rgba(52,152,219,.18)"))
-    fig.update_layout(margin=dict(l=25, r=10, t=4, b=0), height=250,
-                      paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                      font={"size": 11},
-                      xaxis={"showgrid": False, "title": ""},
-                      yaxis={"showgrid": True, "gridcolor": "#2b3441", "gridwidth": .5,
-                             "title": ""})
+def serie_evolucion(df_f):
+    """Devoluelve (días, acumulados, resueltos_acum, pendientes)."""
+    f = df_f.copy()
+    f["creado"] = f["fecha_reporte"].dt.normalize()
+    inicio = f["creado"].min()
+    fin = f["creado"].max()
+    if f["resuelta_en"].notna().any():
+        fin = max(fin, f["resuelta_en"].max().normalize())
+    dias = pd.date_range(inicio, fin, freq="D")
+    nuevos = f.groupby("creado").size().reindex(dias, fill_value=0)
+    resueltos = (f["resuelta_en"].dropna().dt.normalize().value_counts()
+                 .reindex(dias, fill_value=0))
+    acum = nuevos.cumsum()
+    acum_res = resueltos.cumsum()
+    return dias, acum, acum_res, acum - acum_res
+
+
+def fig_evolucion(df_f):
+    if df_f.empty:
+        return _fig_vacia()
+    dias, acum, acum_res, saldo = serie_evolucion(df_f)
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=dias, y=saldo, name="Pendientes (saldo)", mode="lines",
+        line={"color": "#E74C3C", "width": 2.2}, fill="tozeroy",
+        fillcolor="rgba(231,76,60,.13)",
+        hovertemplate="Pendientes: <b>%{y}</b><extra></extra>"))
+    fig.add_trace(go.Scatter(
+        x=dias, y=acum, name="Reportes acumulados", mode="lines",
+        line={"color": "#3498DB", "width": 2.6},
+        hovertemplate="Acumulados: <b>%{y}</b><extra></extra>"))
+    fig.add_trace(go.Scatter(
+        x=dias, y=acum_res, name="Resueltos acumulados", mode="lines",
+        line={"color": "#1ABC9C", "width": 2.6},
+        hovertemplate="Resueltos: <b>%{y}</b><extra></extra>"))
+    fig = _layout_base(fig, 300, leyenda=True)
+    fig.update_xaxes(tickformat="%d %b")
+    return fig
+
+
+def fig_semanal(df_f):
+    if df_f.empty:
+        return _fig_vacia()
+    f = df_f.copy()
+    nuevos = (f["fecha_reporte"].dt.to_period("W-MON").dt.start_time
+              .value_counts().sort_index())
+    resueltos = (f["resuelta_en"].dropna().dt.to_period("W-MON").dt.start_time
+                 .value_counts().sort_index())
+    idx = nuevos.index.union(resueltos.index)
+    fig = go.Figure()
+    fig.add_trace(go.Bar(x=idx, y=nuevos.reindex(idx, fill_value=0), name="Nuevos",
+                         marker_color="#3498DB", marker_line_width=0,
+                         hovertemplate="Nuevos: <b>%{y}</b><extra></extra>"))
+    fig.add_trace(go.Bar(x=idx, y=resueltos.reindex(idx, fill_value=0), name="Resueltos",
+                         marker_color="#1ABC9C", marker_line_width=0,
+                         hovertemplate="Resueltos: <b>%{y}</b><extra></extra>"))
+    fig = _layout_base(fig, 230, leyenda=True)
+    fig.update_layout(barmode="group", bargap=0.25, bargroupgap=0.06)
+    fig.update_xaxes(tickformat="%d %b")
+    return fig
+
+
+def fig_comunas(df_f):
+    if df_f.empty:
+        return _fig_vacia()
+    data = (df_f.groupby("comuna").size().rename("n").reset_index()
+            .sort_values("n", ascending=True))
+    fig = go.Figure(go.Bar(
+        x=data["n"], y=data["comuna"], orientation="h",
+        marker={"color": "#3498DB", "cornerradius": 5, "line": {"width": 0}},
+        text=data["n"], textposition="outside", cliponaxis=False,
+        hovertemplate="%{y}: <b>%{x}</b> reportes<extra></extra>",
+    ))
+    fig = _layout_base(fig, 230)
+    fig.update_layout(margin=dict(l=68, r=26, t=6, b=6))
+    fig.update_yaxes(showgrid=False)
+    return fig
+
+
+def fig_resolucion(df_f):
+    r = df_f.dropna(subset=["resuelta_en"]).copy()
+    if r.empty:
+        return _fig_vacia("Todavía no hay reportes resueltos")
+    r["dias"] = (r["resuelta_en"] - r["fecha_reporte"]).dt.total_seconds() / 86400
+    g = r.groupby("tipo_dano").agg(dias=("dias", "mean"), n=("dias", "size")).reset_index()
+    g = g.sort_values("dias")
+    fig = go.Figure(go.Bar(
+        x=g["dias"], y=g["tipo_dano"], orientation="h",
+        marker={"color": g["tipo_dano"].map(COLOR_TIPO), "cornerradius": 5,
+                "line": {"width": 0}},
+        text=[f"{d:.1f} d" for d in g["dias"]], textposition="outside", cliponaxis=False,
+        customdata=g[["n"]].values.tolist(),
+        hovertemplate="%{y}: <b>%{x:.1f}</b> días de media (%{customdata[0]} resueltos)"
+                      "<extra></extra>",
+    ))
+    fig = _layout_base(fig, 230)
+    fig.update_layout(margin=dict(l=96, r=42, t=6, b=6))
+    fig.update_yaxes(showgrid=False)
     return fig
 
 
@@ -357,16 +531,14 @@ def tabla_recientes_html(df_f, n=10):
                                                  "marginRight": 6}), r["tipo_dano"]])),
         html.Td(r["comuna"]),
         html.Td(r["canal_reporte"], className="d-none d-md-table-cell"),
-        html.Td(dbc.Badge(r["estado_gestion"], color="secondary", className="d-block",
-                          style={"font-size": ".68rem", "background": {
-                              "Reportado": "#8e44ad", "En revisión": "#f39c12",
-                              "Programado": "#2980b9", "Resuelto": "#27ae60"}.get(
-                              r["estado_gestion"], "#555") if "estado_gestion" in r else "#555"})),
+        html.Td(dbc.Badge(r["estado_gestion"], className="d-block",
+                          style={"font-size": ".68rem",
+                                 "background": COLOR_ESTADO.get(r["estado_gestion"], "#555")})),
         html.Td(r["fecha_reporte"].strftime("%Y-%m-%d"), className="d-none d-md-table-cell"),
         html.Td(html.I(className="fa-solid fa-camera-retro text-secondary"
-                       if "uploads/" in str(r.get("foto_url", "")) else
-                       "fa-solid fa-images text-secondary",
-                       **{"data-id": r["id_reporte"]}), style={"width": 30}),
+                       if "uploads/" in str(r["foto_url"]) else
+                       "fa-solid fa-images text-secondary"),
+                style={"width": 30}),
     ], className="border-dark border-top", style={"font-size": ".8rem"})
         for _, r in df_v.iterrows()]
     return html.Table([
@@ -384,6 +556,25 @@ def tabla_recientes_html(df_f, n=10):
     ], className="table-responsive table-sm table-hover mb-0")
 
 
+def resumen_html(df_f):
+    """Las dos cifras que sí aportaban de las tarjetas, ahora como chips compactos."""
+    n = len(df_f)
+    resueltos = int((df_f["estado_gestion"] == "Resuelto").sum())
+    pct = resueltos / n * 100 if n else 0
+    comunas = df_f["comuna"].nunique()
+
+    def chip(icono, texto, color):
+        return html.Span([html.I(className=f"fa-solid {icono} me-1", style={"color": color}),
+                          texto], className="ce-chip")
+
+    return [
+        chip("fa-clipboard-list", f"{n:,} reportes".replace(",", " "), "#3498DB"),
+        chip("fa-circle-check", f"{pct:.1f} % resueltos", "#1ABC9C"),
+        chip("fa-hourglass-half", f"{n - resueltos} pendientes", "#E74C3C"),
+        chip("fa-map", f"{comunas} comunas", "#E67E22"),
+    ]
+
+
 # ------------------------------------------------------------------
 # Callbacks
 # ------------------------------------------------------------------
@@ -391,6 +582,9 @@ def tabla_recientes_html(df_f, n=10):
 @callback(
     Output("f_comuna", "options"), Output("f_tipo", "options"),
     Output("f_canal", "options"), Output("f_estado", "options"),
+    # Sin `value` inicial el filtro queda en blanco y parece que no hay datos
+    Output("f_comuna", "value"), Output("f_tipo", "value"),
+    Output("f_canal", "value"), Output("f_estado", "value"),
     Output("f_fechas", "start_date"), Output("f_fechas", "end_date"),
     Output("n_tipo", "options"), Output("n_comuna", "options"),
     Output("n_canal", "options"),
@@ -400,66 +594,50 @@ def tabla_recientes_html(df_f, n=10):
 )
 def cargar_opciones_iniciales(_):
     df = cargar_df()
-    return (option_list("comuna", "Todas"), option_list("tipo_dano", "Todos"),
-            option_list("canal_reporte", "Todos"), option_list("estado_gestion", "Todos"),
+    return (option_list(df, "comuna", "Todas"), option_list(df, "tipo_dano", "Todos"),
+            option_list(df, "canal_reporte", "Todos"), option_list(df, "estado_gestion", "Todos"),
+            "Todas", "Todos", "Todos", "Todos",
             df["fecha_reporte"].min().date(), df["fecha_reporte"].max().date(),
-            option_list("tipo_dano", "—"), option_list("comuna", "—"),
-            option_list("canal_reporte", "—"), False)
+            option_list(df, "tipo_dano", "—"), option_list(df, "comuna", "—"),
+            option_list(df, "canal_reporte", "—"), False)
 
 
-# 2. Panel principal: KPIs + figuras
+# 2. Panel principal: resumen + figuras + tabla
 @callback(
-    Output("kpis", "children"), Output("mapa", "figure"),
+    Output("resumen_filtros", "children"), Output("mapa", "figure"),
     Output("g_tipo", "figure"), Output("g_canal", "figure"),
-    Output("g_temporal", "figure"), Output("tabla_recientes", "children"),
+    Output("g_evol", "figure"), Output("g_semana", "figure"),
+    Output("g_comuna", "figure"), Output("g_resolucion", "figure"),
+    Output("tabla_recientes", "children"),
     Input("f_comuna", "value"), Input("f_tipo", "value"),
     Input("f_canal", "value"), Input("f_estado", "value"),
     Input("f_fechas", "start_date"), Input("f_fechas", "end_date"),
     Input("btn_reset", "n_clicks"), Input("store_actualizado", "modified_timestamp"),
 )
 def actualizar_dashboard(comuna, tipo, canal, estado, fi, ff, _reset, _ts):
+    f = filtrar(comuna, tipo, canal, estado, fi, ff)
+    return (resumen_html(f), figura_mapa(f), barras_tipo(f), dona_canal(f),
+            fig_evolucion(f), fig_semanal(f), fig_comunas(f), fig_resolucion(f),
+            tabla_recientes_html(f))
+
+
+# 2b. Restablecer: vuelve los filtros al estado inicial
+@callback(
+    Output("f_comuna", "value", allow_duplicate=True),
+    Output("f_tipo", "value", allow_duplicate=True),
+    Output("f_canal", "value", allow_duplicate=True),
+    Output("f_estado", "value", allow_duplicate=True),
+    Output("f_fechas", "start_date", allow_duplicate=True),
+    Output("f_fechas", "end_date", allow_duplicate=True),
+    Input("btn_reset", "n_clicks"),
+    prevent_initial_call=True,
+)
+def reset_filtros(n):
+    if not n:
+        return (no_update,) * 6
     df = cargar_df()
-    f = df.copy()
-    if comuna and comuna != "Todas":
-        f = f[f["comuna"] == comuna]
-    if tipo and tipo != "Todos":
-        f = f[f["tipo_dano"] == tipo]
-    if canal and canal != "Todos":
-        f = f[f["canal_reporte"] == canal]
-    if estado and estado != "Todos":
-        f = f[f["estado_gestion"] == estado]
-    if fi and ff:
-        f = f[(f["fecha_reporte"] >= pd.Timestamp(fi)) &
-              (f["fecha_reporte"] <= pd.Timestamp(ff) + pd.Timedelta(days=1))]
-
-    top_tipo = f["tipo_dano"].mode()
-    top_comuna = f.groupby("comuna").size().sort_values(ascending=False)
-    pct_resueltos = (f["estado_gestion"] == "Resuelto").mean() * 100 if len(f) else 0
-
-    def kpi_card(titulo, valor, icono, color):
-        return dbc.Col(dbc.Card(dbc.CardBody([
-            html.Div([html.I(className=f"fa-solid {icono} me-2",
-                             style={"color": color, "font-size": "1rem"}),
-                      html.Span(titulo, className="text-muted", style={
-                          "font-size": ".68rem", "letter-spacing": ".07em"})],
-                     className="d-flex align-items-center mb-1"),
-            html.H5(valor, className="mb-0", style={"font-weight": 700}),
-        ]), className="surface shadow-sm border-0 h-100"), width=6, md=4, xl=2, className="mb-2")
-
-    kpis = [
-        kpi_card("TOTAL REPORTES", f"{len(f)}", "fa-clipboard-list", "#3498DB"),
-        kpi_card("COMUNAS ACTIVAS", f"{f['comuna'].nunique()}", "fa-map", "#27AE60"),
-        kpi_card("TIPO PREDOMINANTE", top_tipo.iloc[0] if len(top_tipo) else "—",
-                 "fa-bolt", "#E67E22"),
-        kpi_card("TOP COMUNA", top_comuna.index[0] if len(top_comuna) else "—",
-                 "fa-circle-dot", "#9B59B6"),
-        kpi_card("% RESUELTOS", f"{pct_resueltos:.1f}%", "fa-circle-check", "#E74C3C"),
-        kpi_card("ÚLTIMA HORA", str(df["fecha_reporte"].max().strftime("%b %d")),
-                 "fa-clock", "#1ABC9C"),
-    ]
-
-    return (kpis, figura_mapa(f), barras_tipo(f), dona_canal(f),
-            area_temporal(f), tabla_recientes_html(f))
+    return ("Todas", "Todos", "Todos", "Todos",
+            df["fecha_reporte"].min().date(), df["fecha_reporte"].max().date())
 
 
 # 3. Detalle al hacer clic
@@ -484,6 +662,9 @@ def mostrar_detalle(click_data, _cerrar):
     if "/" not in foto_url:
         foto_url = f"assets/img/{IMG_TIPO.get(tipo, 'otro.png')}"
     img_url = "/" + foto_url
+    resuelta = (fila["resuelta_en"].iloc[0] if len(fila) else pd.NaT)
+    resuelta_txt = (resuelta.strftime("%Y-%m-%d %H:%M")
+                    if pd.notna(resuelta) else "— sin resolver —")
     cuadro = dbc.Row([
         dbc.Col(html.Img(src=img_url, style={
             "width": "100%", "borderRadius": 10, "maxHeight": 330,
@@ -506,6 +687,8 @@ def mostrar_detalle(click_data, _cerrar):
                       html.Span(str(canal), style={"font-weight": 600})]),
             html.Div([html.Label("Fecha:", className="text-muted small mb-0 mt-1"),
                       html.Span(str(fecha), style={"font-weight": 600})]),
+            html.Div([html.Label("Resuelta en:", className="text-muted small mb-0 mt-1"),
+                      html.Span(resuelta_txt, style={"font-weight": 600})]),
             html.Div([html.Label("Origen:", className="text-muted small mb-0 mt-1"),
                       html.Span("SIMULADO_ACADEMICO",
                                 className="badge bg-dark", style={"font-size": ".65rem"})]),
@@ -521,26 +704,30 @@ def mostrar_detalle(click_data, _cerrar):
 
 # 4. Guarda el cambio de estado elegido dentro del detalle
 @callback(
-    Output("toast_nuevo", "is_open"),
-    Output("toast_nuevo", "children"),
-    Output("mapa", "figure", allow_duplicate=True),
-    Output("tabla_recientes", "children", allow_duplicate=True),
+    Output("toast_nuevo", "is_open", allow_duplicate=True),
+    Output("toast_nuevo", "children", allow_duplicate=True),
+    Output("store_actualizado", "data", allow_duplicate=True),
     Input("dd_estado_nuevo", "value"),
     State("mapa", "clickData"),
-    State("tabla_recientes", "children"),
     prevent_initial_call=True,
 )
-def cambiar_estado(nuevo_estado, click_data, tabla):
-    if click_data and click_data.get("points"):
-        id_rep = click_data["points"][0]["customdata"][0]
-        df = cargar_df()
-        df.loc[df["id_reporte"] == id_rep, "estado_gestion"] = nuevo_estado
-        df.to_csv(DATA_CSV, index=False, encoding="utf-8")
-        df_r = cargar_df()
-        toast = html.Div([html.I(className="fa-solid fa-circle-check text-success me-2"),
-                          f"Estado de {id_rep} actualizado a “{nuevo_estado}”"])
-        return True, toast, figura_mapa(df_r), tabla_recientes_html(df_r)
-    return no_update, no_update, no_update, no_update
+def cambiar_estado(nuevo_estado, click_data):
+    if not nuevo_estado or not (click_data and click_data.get("points")):
+        return no_update, no_update, no_update
+    id_rep = click_data["points"][0]["customdata"][0]
+    df = cargar_df()
+    m = df["id_reporte"] == id_rep
+    if not m.any():
+        return no_update, no_update, no_update
+    df.loc[m, "estado_gestion"] = nuevo_estado
+    # `resuelta_en` alimenta los gráficos de evolución: se marca al resolver y
+    # se limpia si el reporte vuelve a un estado abierto.
+    df.loc[m, "resuelta_en"] = pd.Timestamp.now() if nuevo_estado == "Resuelto" else pd.NaT
+    df.to_csv(DATA_CSV, index=False, encoding="utf-8")
+    toast = html.Div([html.I(className="fa-solid fa-circle-check text-success me-2"),
+                      f"Estado de {id_rep} actualizado a “{nuevo_estado}”"])
+    # `store_actualizado` fuerza el refresco de todas las figuras
+    return True, toast, f"estado-{time.time()}"
 
 
 # 5. Abrir/cerrar modal del formulario
@@ -549,17 +736,9 @@ def cambiar_estado(nuevo_estado, click_data, tabla):
     Input("btn_abrir_form", "n_clicks"),
     Input("btn_cancelar_form", "n_clicks"),
     Input("btn_enviar_form", "n_clicks"),
-    State("upload_foto", "contents"),
-    State("n_tipo", "value"),
-    State("n_comuna", "value"),
-    State("n_lat", "value"),
-    State("n_lon", "value"),
-    State("n_canal", "value"),
-    State("n_estado", "value"),
-    State("n_desc", "value"),
     prevent_initial_call=True,
 )
-def toggle_modal_form(abrir, cancelar, enviar, *_):
+def toggle_modal_form(abrir, cancelar, enviar):
     """Solo abre/cierra. El guardado lo hace la callback de notificación."""
     trig = ctx.triggered_id
     if trig == "btn_abrir_form":
@@ -574,7 +753,7 @@ def guardar_reporte(tipo, comuna, lat, lon, canal, estado, desc, contenido):
     df = cargar_df()
     maxv = df["id_reporte"].str.extract(r"(\d+)$")[0].astype(int).max()
     nuevo_id = f"CE-2026-{int(maxv) + 1:04d}"
-    ahora = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
+    ahora = pd.Timestamp.now()
 
     foto_url = ""
     if contenido:
@@ -588,6 +767,7 @@ def guardar_reporte(tipo, comuna, lat, lon, canal, estado, desc, contenido):
         img.save(os.path.join(UPLOADS, nombre), "JPEG", quality=86)
         foto_url = f"assets/uploads/{nombre}"
 
+    estado = estado if estado else "Reportado"
     nueva = pd.DataFrame([{
         "id_reporte": nuevo_id,
         "fecha_reporte": ahora,
@@ -596,10 +776,11 @@ def guardar_reporte(tipo, comuna, lat, lon, canal, estado, desc, contenido):
         "comuna": comuna,
         "tipo_dano": tipo,
         "canal_reporte": canal if canal else "App Ciudad Escucha",
-        "estado_gestion": estado if estado else "Reportado",
+        "estado_gestion": estado,
         "origen_datos": "SIMULADO_FORMULARIO_APP",
         "foto_url": foto_url,
         "descripcion": (desc or "").strip(),
+        "resuelta_en": ahora if estado == "Resuelto" else pd.NaT,
     }])
     df = pd.concat([df, nueva], ignore_index=True)
     df.to_csv(DATA_CSV, index=False, encoding="utf-8")
@@ -616,7 +797,7 @@ def guardar_reporte(tipo, comuna, lat, lon, canal, estado, desc, contenido):
     State("n_comuna", "value"),
     prevent_initial_call=True,
 )
-def sugerir(n_clicks, comuna):
+def sugerir(_n_clicks, comuna):
     df = cargar_df()
     comuna_sel = comuna if comuna else random.choice(sorted(df["comuna"].unique()))
     sub = df[df["comuna"] == comuna_sel]
@@ -629,7 +810,7 @@ def sugerir(n_clicks, comuna):
                                   marker={"size": 14, "color": "#E74C3C",
                                           "opacity": .9}))
     fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=150,
-                      paper_bgcolor="rgba(0,0,0,0)",
+                      paper_bgcolor=TRANS,
                       map={"style": "carto-positron",
                            "center": {"lat": lat, "lon": lon}, "zoom": 12.6})
     return lat, lon, fig, comuna_sel
@@ -637,7 +818,8 @@ def sugerir(n_clicks, comuna):
 
 # 8. Mini-mapa también al mover lat/lon manuales
 @callback(
-    Output("n_lat", "value"), Output("n_lon", "value"),
+    Output("n_lat", "value", allow_duplicate=True),
+    Output("n_lon", "value", allow_duplicate=True),
     Output("mini_mapa", "figure", allow_duplicate=True),
     Input("n_lat", "value"), Input("n_lon", "value"),
     prevent_initial_call=True,
@@ -648,7 +830,7 @@ def mini_mapa_manual(lat, lon):
     fig = go.Figure(go.Scattermap(lat=[lat], lon=[lon], mode="markers",
                                   marker={"size": 14, "color": "#3498DB", "opacity": .9}))
     fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=150,
-                      paper_bgcolor="rgba(0,0,0,0)",
+                      paper_bgcolor=TRANS,
                       map={"style": "carto-positron",
                            "center": {"lat": lat, "lon": lon}, "zoom": 12.6})
     return round(float(lat), 6), round(float(lon), 6), fig
@@ -673,10 +855,10 @@ def previsualizar(contenido, nombre):
     Output("upload_foto", "contents"), Output("preview_foto", "src"),
     Output("preview_foto", "style"), Output("preview_texto", "children"),
     Input("btn_abrir_form", "n_clicks"),
-    State("n_tipo", "options"), State("n_comuna", "options"),
+    State("n_tipo", "options"),
     prevent_initial_call=True,
 )
-def reset_formulario(n, opts_tipo, opts_com):
+def reset_formulario(n, opts_tipo):
     if n:
         tipo_def = (opts_tipo[1]["value"] if opts_tipo and len(opts_tipo) > 1 else None)
         return tipo_def, "", None, "", {"display": "none"}, ""
@@ -707,7 +889,7 @@ def notificar_guardado(n, tipo, comuna, lat, lon, canal, estado, desc, contenido
             html.Span(fcom, className="ms-1 text-muted small"),
         ]),
     ])
-    return True, toast, str(n)
+    return True, toast, f"nuevo-{time.time()}"
 
 
 @app.server.route("/health")
