@@ -83,11 +83,16 @@ PESOS_RIESGO = {
 DIAS_RESPUESTA = {"Vías": (34, 14), "Alumbrado público": (18, 8),
                   "Basuras": (12, 6), "Alcantarillado": (26, 11), "Otro": (22, 10)}
 
-FOTO = {"Vías": "assets/img/vias.png",
-        "Alumbrado público": "assets/img/alumbrado.png",
-        "Basuras": "assets/img/basuras.png",
-        "Alcantarillado": "assets/img/alcantarillado.png",
-        "Otro": "assets/img/otro.png"}
+# Cuatro fotos por tipo para que dos reportes del mismo daño no se vean igual
+FOTO = {
+    "Vías": ["vias.png", "vias_2.png", "vias_3.png", "vias_4.png"],
+    "Alumbrado público": ["alumbrado.png", "alumbrado_2.png",
+                          "alumbrado_3.png", "alumbrado_4.png"],
+    "Basuras": ["basuras.png", "basuras_2.png", "basuras_3.png", "basuras_4.png"],
+    "Alcantarillado": ["alcantarillado.png", "alcantarillado_2.png",
+                       "alcantarillado_3.png", "alcantarillado_4.png"],
+    "Otro": ["otro.png", "otro_2.png", "otro_3.png", "otro_4.png"],
+}
 
 DESCRIPCION = {
     "Vías": "Hueco en la calzada que afecta el paso vehicular",
@@ -216,7 +221,7 @@ def generar(num_reportes=1000, semilla=42, ahora=None):
             "puntaje_prioridad": pts,
             "prioridad": prioridad,
             "origen_datos": "SIMULADO_ACADEMICO",
-            "foto_url": FOTO[p["tipo_dano"]],
+            "foto_url": "assets/img/" + random.choice(FOTO[p["tipo_dano"]]),
             "descripcion": f"{DESCRIPCION[p['tipo_dano']]} ({p['barrio']}, "
                            f"Comuna {p['comuna']})",
         })

@@ -74,13 +74,24 @@ COLOR_CANAL = {
     "Portal Web": "#9B59B6",
     "Físico/PQRSD Telefónico": "#E67E22",
 }
+# Varias fotos por tipo: así dos reportes del mismo daño no muestran la misma
 IMG_TIPO = {
-    "Vías": "vias.png",
-    "Alumbrado público": "alumbrado.png",
-    "Basuras": "basuras.png",
-    "Alcantarillado": "alcantarillado.png",
-    "Otro": "otro.png",
+    "Vías": ["vias.png", "vias_2.png", "vias_3.png", "vias_4.png"],
+    "Alumbrado público": ["alumbrado.png", "alumbrado_2.png",
+                          "alumbrado_3.png", "alumbrado_4.png"],
+    "Basuras": ["basuras.png", "basuras_2.png", "basuras_3.png", "basuras_4.png"],
+    "Alcantarillado": ["alcantarillado.png", "alcantarillado_2.png",
+                       "alcantarillado_3.png", "alcantarillado_4.png"],
+    "Otro": ["otro.png", "otro_2.png", "otro_3.png", "otro_4.png"],
 }
+
+
+def foto_tipo(tipo, semilla=""):
+    """Ruta de la foto del tipo de daño, eligiendo variante de forma estable
+    (el mismo reporte muestra siempre la misma imagen)."""
+    variantes = IMG_TIPO.get(tipo) or IMG_TIPO["Otro"]
+    indice = sum(ord(c) for c in str(semilla)) % len(variantes) if semilla else 0
+    return f"assets/img/{variantes[indice]}"
 
 # Colores neutros que funcionan en tema oscuro y claro
 GRID = "rgba(148,163,184,.20)"
@@ -143,8 +154,8 @@ def cargar_df():
     # fecha para calcular el saldo de pendientes en cada punto del tiempo.
     df["fecha_resolucion"] = pd.to_datetime(df["fecha_resolucion"], errors="coerce")
     m = df["foto_url"] == ""
-    df.loc[m, "foto_url"] = df.loc[m, "tipo_dano"].map(
-        lambda t: f"assets/img/{IMG_TIPO.get(t, 'otro.png')}")
+    df.loc[m, "foto_url"] = [foto_tipo(t, i) for t, i
+                             in zip(df.loc[m, "tipo_dano"], df.loc[m, "id_reporte"])]
     return df
 
 
@@ -1407,7 +1418,7 @@ def mostrar_detalle(click_data, _cerrar):
     fila = df[df["id_reporte"] == id_rep]
     foto_url = str(fila["foto_url"].iloc[0]) if len(fila) else ""
     if "/" not in foto_url:
-        foto_url = f"assets/img/{IMG_TIPO.get(tipo, 'otro.png')}"
+        foto_url = foto_tipo(tipo, id_rep)
     img_url = "/" + foto_url
     resuelta = (fila["fecha_resolucion"].iloc[0] if len(fila) else pd.NaT)
     resuelta_txt = (resuelta.strftime("%Y-%m-%d %H:%M")

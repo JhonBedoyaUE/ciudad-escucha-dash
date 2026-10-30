@@ -1,6 +1,6 @@
 # Reglas de priorización — Ciudad Escucha (datos simulados)
 
-Generado por `scripts/generar_dataset.py` el 2026-10-30 09:32.
+Generado por `scripts/generar_dataset.py` el 2026-10-30 10:15.
 Todos los registros son **SIMULADO_ACADEMICO**.
 
 ## Fórmula (0–100 puntos por reporte)

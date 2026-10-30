@@ -138,7 +138,7 @@ túnel local (`c-escucha`, `ee01174c-1d9a-4d6c-84c1-a0d2ecb8a55b`) y levantar
 │   ├── generated/reglas_priorizacion.md # reglas aplicadas y ajustes de entrevistas
 │   └── processed/veredas_villavicencio_simpl.geojson
 ├── assets/
-│   ├── img/*.png                # imágenes sintéticas de tipos de daño (Z-image generadas)
+│   ├── img/*.png                # 4 fotos sintéticas por tipo de daño (20 en total, Z-image)
 │   ├── uploads/                 # fotos subidas desde el formulario
 │   └── style.css                # tema oscuro compacto
 ├── priorizacion.py              # reglas de priorización (generador + dashboard)
