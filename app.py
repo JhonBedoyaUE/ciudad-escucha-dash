@@ -13,6 +13,7 @@ Autor: Jhon Bedoya — Habilidades Gerenciales
 import base64
 import io
 import json
+import math
 import os
 import random
 import time
@@ -291,12 +292,30 @@ app.layout = dbc.Container([
                     width=12, md=4),
         ], className="g-3 mb-3"),
 
-        # ---------- Tabla recientes ----------
+        # ---------- Tabla recientes (paginada) ----------
         dbc.Row(dbc.Col(dbc.Card([
-            dbc.CardHeader(html.Span([html.I(className="fa-solid fa-list me-2"),
-                                      "Últimos reportes registrados"])),
+            dbc.CardHeader(dbc.Row([
+                dbc.Col(html.Span([html.I(className="fa-solid fa-list me-2"),
+                                   "Reportes registrados"]),
+                        width="auto", className="align-self-center"),
+                dbc.Col([
+                    html.Span(id="info_pagina", className="text-muted me-3",
+                              style={"font-size": ".74rem"}),
+                    dbc.Select(id="tam_pagina", size="sm",
+                               options=[{"label": f"{n} por página", "value": n}
+                                        for n in (10, 25, 50, 100)],
+                               value=10, className="ce-tam-pagina d-inline-block align-middle me-2"),
+                    dbc.Button([html.I(className="fa-solid fa-chevron-left")], id="btn_pag_prev",
+                               color="secondary", outline=True, size="sm",
+                               className="me-1 px-2", title="Página anterior"),
+                    dbc.Button([html.I(className="fa-solid fa-chevron-right")], id="btn_pag_next",
+                               color="secondary", outline=True, size="sm",
+                               className="px-2", title="Página siguiente"),
+                ], width="auto", className="ms-auto d-flex align-items-center"),
+            ], className="align-items-center g-2 flex-wrap")),
             dbc.CardBody(html.Div(id="tabla_recientes")),
-        ], className="surface shadow-sm border-0 mb-4"))),
+        ], className="surface shadow-sm border-0 mb-4"),
+            )),
 
         html.Hr(className="border-dark"),
         html.P("🚨 DATOS SIMULADOS · PROYECTO ACADÉMICO · Habilidades Gerenciales · "
@@ -333,6 +352,7 @@ app.layout = dbc.Container([
     dcc.Store(id="store_actualizado"),
     # Tema actual (lo mantiene assets/theme.js): el mapa cambia de basemap claro/oscuro
     dcc.Store(id="store_tema", data="dark"),
+    dcc.Store(id="store_pagina", data=1),
 ], fluid=True, className="g-3")
 
 
@@ -577,8 +597,17 @@ def fig_resolucion(df_f, seleccion=None):
     return fig
 
 
-def tabla_recientes_html(df_f, n=10):
-    df_v = df_f.sort_values("fecha_reporte", ascending=False).head(n)
+def tabla_recientes_html(df_f, pagina=1, tam=10):
+    """Tabla paginada de reportes (más recientes primero).
+
+    Devuelve (tabla, texto_de_rango, pagina_efectiva, total_paginas).
+    """
+    total = len(df_f)
+    paginas = max(1, math.ceil(total / tam))
+    pagina = min(max(1, int(pagina or 1)), paginas)
+    ini = (pagina - 1) * tam
+    df_v = (df_f.sort_values("fecha_reporte", ascending=False)
+            .iloc[ini:ini + tam])
     filas = [html.Tr([
         html.Td(html.Code(r["id_reporte"], style={"font-size": ".74rem"})),
         html.Td(html.Span([html.Span("●", style={"color": COLOR_TIPO.get(r["tipo_dano"], "#999"),
@@ -595,7 +624,7 @@ def tabla_recientes_html(df_f, n=10):
                 style={"width": 30}),
     ], className="border-dark border-top", style={"font-size": ".8rem"})
         for _, r in df_v.iterrows()]
-    return html.Table([
+    tabla = html.Table([
         html.Thead(html.Tr([html.Th("ID", style={"font-size": ".7rem"}),
                             html.Th("Tipo", style={"font-size": ".7rem"}),
                             html.Th("Comuna", style={"font-size": ".7rem"}),
@@ -608,6 +637,13 @@ def tabla_recientes_html(df_f, n=10):
                            className="text-muted")),
         html.Tbody(filas),
     ], className="table-responsive table-sm table-hover mb-0")
+
+    if total:
+        texto = (f"Mostrando {ini + 1:,}–{ini + len(df_v):,} de {total:,} reportes".replace(",", " ")
+                 + f" · página {pagina} de {paginas}")
+    else:
+        texto = "Sin reportes con los filtros actuales"
+    return tabla, texto, pagina, paginas
 
 
 def resumen_html(df_f):
@@ -662,7 +698,6 @@ def cargar_opciones_iniciales(_):
     Output("g_tipo", "figure"), Output("g_canal", "figure"),
     Output("g_evol", "figure"), Output("g_semana", "figure"),
     Output("g_comuna", "figure"), Output("g_resolucion", "figure"),
-    Output("tabla_recientes", "children"),
     Input("f_comuna", "value"), Input("f_tipo", "value"),
     Input("f_canal", "value"), Input("f_estado", "value"),
     Input("f_fechas", "start_date"), Input("f_fechas", "end_date"),
@@ -682,8 +717,7 @@ def actualizar_dashboard(comuna, tipo, canal, estado, fi, ff, _reset, _ts, tema)
     return (resumen_html(base), figura_mapa(base, tema),
             barras_tipo(sin_tipo, tipo), embudo_canal(sin_canal, canal),
             fig_evolucion(base), fig_semanal(base),
-            fig_comunas(sin_comuna, comuna), fig_resolucion(sin_tipo, tipo),
-            tabla_recientes_html(base))
+            fig_comunas(sin_comuna, comuna), fig_resolucion(sin_tipo, tipo))
 
 
 # ------------------------------------------------------------------
@@ -768,6 +802,49 @@ def cruce_semana(click, inicio_actual):
         df = cargar_df()
         return df["fecha_reporte"].min().date(), df["fecha_reporte"].max().date()
     return semana.date(), (semana + pd.Timedelta(days=6)).date()
+
+
+# 2d. Tabla paginada: página actual + página visualizada
+@callback(
+    Output("store_pagina", "data"),
+    Input("btn_pag_prev", "n_clicks"), Input("btn_pag_next", "n_clicks"),
+    Input("tam_pagina", "value"),
+    Input("f_comuna", "value"), Input("f_tipo", "value"),
+    Input("f_canal", "value"), Input("f_estado", "value"),
+    Input("f_fechas", "start_date"), Input("f_fechas", "end_date"),
+    Input("store_actualizado", "modified_timestamp"),
+    State("store_pagina", "data"),
+    prevent_initial_call=True,
+)
+def mover_pagina(_prev, _sig, tam, comuna, tipo, canal, estado, fi, ff, _ts, pagina):
+    """Cualquier cambio de filtro vuelve a la primera página."""
+    if ctx.triggered_id not in ("btn_pag_prev", "btn_pag_next"):
+        return 1
+    tam = int(tam or 10)
+    total = len(filtrar(cargar_df(), comuna, tipo, canal, estado, fi, ff))
+    maxp = max(1, math.ceil(total / tam))
+    actual = min(max(1, pagina or 1), maxp)
+    if ctx.triggered_id == "btn_pag_prev":
+        return max(1, actual - 1)
+    return min(maxp, actual + 1)
+
+
+@callback(
+    Output("tabla_recientes", "children"),
+    Output("info_pagina", "children"),
+    Output("btn_pag_prev", "disabled"),
+    Output("btn_pag_next", "disabled"),
+    Input("f_comuna", "value"), Input("f_tipo", "value"),
+    Input("f_canal", "value"), Input("f_estado", "value"),
+    Input("f_fechas", "start_date"), Input("f_fechas", "end_date"),
+    Input("store_pagina", "data"), Input("tam_pagina", "value"),
+    Input("store_actualizado", "modified_timestamp"),
+)
+def paginar_tabla(comuna, tipo, canal, estado, fi, ff, pagina, tam, _ts):
+    f = filtrar(cargar_df(), comuna, tipo, canal, estado, fi, ff)
+    tam = int(tam or 10)
+    tabla, texto, pag, paginas = tabla_recientes_html(f, pagina, tam)
+    return tabla, texto, pag <= 1, pag >= paginas
 
 
 # 2b. Restablecer: vuelve los filtros al estado inicial

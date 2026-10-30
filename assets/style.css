@@ -248,3 +248,10 @@ html.light ::selection { background: rgba(52,152,219,.28); }
 /* ---------- Filtros cruzados: gráficos clicables ---------- */
 #g_tipo .plot-container, #g_canal .plot-container, #g_comuna .plot-container,
 #g_resolucion .plot-container, #g_semana .plot-container { cursor: pointer; }
+
+/* ---------- Tabla paginada ---------- */
+.ce-tam-pagina {
+    width: 138px !important; font-size: .76rem;
+    padding: .22rem 1.6rem .22rem .5rem; min-height: 0;
+}
+#info_pagina { white-space: nowrap; }

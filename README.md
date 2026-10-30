@@ -24,6 +24,7 @@ espacio público del municipio de Villavicencio, Meta, Colombia.
 | 📊 **Gráficas del panel** | Reportes por tipo de daño y Canal de reporte, apiladas a la derecha del mapa |
 | 📈 **Evolución acumulada** | Reportes acumulados, resueltos acumulados y **pendientes (saldo)** calculados con la fecha `resuelta_en` de cada punto |
 | 🧮 **Gestión** | Entradas y salidas por semana, reportes por comuna y tiempo medio de resolución por tipo |
+| 📋 **Tabla paginada** | Todos los reportes filtrados, con paginación (10/25/50/100 por página), contador "Mostrando X–Y de Z" y navegación anterior/siguiente |
 
 ## 🚀 Arranque local
 
