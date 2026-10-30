@@ -267,3 +267,63 @@ html.light ::selection { background: rgba(52,152,219,.28); }
 #tabla_recientes tbody tr.ce-fila:hover td { background: rgba(52,152,219,.10); }
 #tabla_recientes tbody tr.ce-fila-sel td { background: rgba(52,152,219,.22) !important; }
 html.light #tabla_recientes tbody tr.ce-fila-sel td { background: rgba(52,152,219,.14) !important; }
+
+/* ---------- Formulario: mapa para fijar el punto ---------- */
+.ce-mapa-wrap { position: relative; }
+.ce-mapa-wrap .dash-graph { border-radius: 8px; overflow: hidden; border: 1px solid var(--ce-border); }
+#capa_clic_mapa {
+    position: absolute; inset: 0; cursor: crosshair; z-index: 5; border-radius: 8px;
+}
+
+/* ---------- Leyenda del mapa + selector de color ---------- */
+.ce-leyenda {
+    display: flex; flex-wrap: wrap; gap: .1rem .9rem;
+    font-size: .74rem; color: var(--ce-text-muted);
+}
+.ce-leyenda-item { white-space: nowrap; }
+.ce-select-inline {
+    width: 165px !important; font-size: .76rem; min-height: 0;
+    padding: .2rem 1.5rem .2rem .5rem;
+}
+
+/* ---------- Segmentado Puntos / Calor ---------- */
+.ce-segmentado { display: inline-flex; margin-bottom: 0; }
+.ce-segmentado .btn { font-size: .74rem; padding: .22rem .6rem; white-space: nowrap; }
+.ce-segmentado .btn-check:checked + .btn {
+    background: var(--ce-surface-2) !important;
+    border-color: #3498DB !important; color: #3498DB !important;
+}
+html.light .ce-segmentado .btn-check:checked + .btn {
+    background: #e8f1fa !important; color: #1f6fb2 !important;
+}
+
+/* ---------- Pulido visual de tarjetas ---------- */
+.surface {
+    border-radius: 12px !important;
+    transition: box-shadow .18s ease;
+    background-clip: padding-box;
+}
+.surface::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, #3498DB, #1ABC9C 70%, transparent);
+    opacity: .55; pointer-events: none;
+}
+.surface:hover { box-shadow: 0 8px 22px rgba(0, 0, 0, .30) !important; }
+html.light .surface:hover { box-shadow: 0 8px 22px rgba(15, 30, 50, .12) !important; }
+.ce-f-barra { display: flex; align-items: center; gap: .4rem; }
+
+/* ---------- Botones secundarios legibles en el tema oscuro ---------- */
+.ce-filtros .btn-outline-secondary,
+#modal_form .btn-outline-secondary,
+#btn_pag_prev, #btn_pag_next {
+    color: var(--ce-text) !important;
+    border-color: var(--ce-border) !important;
+}
+.ce-filtros .btn-outline-secondary:hover,
+#modal_form .btn-outline-secondary:hover,
+#btn_pag_prev:hover:not(:disabled), #btn_pag_next:hover:not(:disabled) {
+    background: rgba(52, 152, 219, .20) !important;
+    border-color: #3498DB !important;
+    color: var(--ce-text) !important;
+}
+#btn_pag_prev:disabled, #btn_pag_next:disabled { opacity: .35; }

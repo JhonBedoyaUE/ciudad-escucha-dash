@@ -16,6 +16,7 @@ import json
 import math
 import os
 import random
+import socket
 import time
 
 import dash_bootstrap_components as dbc
@@ -67,6 +68,22 @@ IMG_TIPO = {
 # Colores neutros que funcionan en tema oscuro y claro
 GRID = "rgba(148,163,184,.20)"
 TRANS = "rgba(0,0,0,0)"
+
+# Las gráficas de barras/embudo ya llevan la categoría escrita al lado: el color
+# no añade información, así que se usa uno solo. El resaltado (filtro cruzado)
+# mantiene el azul y apaga el resto en gris.
+C_DATO = "#3498DB"
+C_APAGADO = "rgba(148,163,184,.30)"
+PALETA_COMUNA = ["#4C78A8", "#F58518", "#54A24B", "#E45756", "#72B7B2",
+                 "#EECA3B", "#B279A2", "#FF9DA6", "#9D755D", "#BAB0AC"]
+
+# Dimensiones por las que se pueden colorear los puntos del mapa
+CAMPOS_COLOR_MAPA = [
+    {"label": "Tipo de daño", "value": "tipo_dano"},
+    {"label": "Canal de reporte", "value": "canal_reporte"},
+    {"label": "Comuna", "value": "comuna"},
+    {"label": "Estado de gestión", "value": "estado_gestion"},
+]
 
 # ------------------------------------------------------------------
 # Datos
@@ -132,32 +149,22 @@ def form_nuevo_reporte():
         dbc.Col([
             html.Label("Tipo de daño", className="text-muted small mt-1"),
             dcc.Dropdown(id="n_tipo", clearable=False),
-            html.Label("Comuna", className="text-muted small mt-2"),
-            dbc.Select(id="n_comuna"),
             dbc.Row([
-                dbc.Col([html.Label("Latitud", className="text-muted small mt-2"),
-                         dbc.Input(id="n_lat", type="number", step="0.000001")], width=6),
-                dbc.Col([html.Label("Longitud", className="text-muted small mt-2"),
-                         dbc.Input(id="n_lon", type="number", step="0.000001")], width=6),
-            ]),
-            dbc.Row([
+                dbc.Col([html.Label("Comuna", className="text-muted small mt-2"),
+                         dbc.Select(id="n_comuna")], width=6),
                 dbc.Col([html.Label("Canal de reporte", className="text-muted small mt-2"),
                          dbc.Select(id="n_canal")], width=6),
+            ]),
+            dbc.Row([
                 dbc.Col([html.Label("Estado", className="text-muted small mt-2"),
                          dbc.Select(id="n_estado",
                                     options=["Reportado", "En revisión", "Programado", "Resuelto"])],
                         width=6),
             ]),
             html.Label("Descripción del problema", className="text-muted small mt-2"),
-            dbc.Textarea(id="n_desc", rows=2,
+            dbc.Textarea(id="n_desc", rows=3,
                          placeholder="Ej: 'Alumbrado público descompuesto frente a la vereda...'"),
-            dbc.Button([html.I(className="fa-solid fa-dice me-1"), " Sugerir punto en la comuna"],
-                       id="btn_sugerir_punto", color="secondary", size="sm", outline=True,
-                       className="mt-2 w-100"),
-        ], width=12, lg=6),
-
-        dbc.Col([
-            html.Label("📸 Foto del problema (opcional)", className="text-muted small mt-1"),
+            html.Label("📸 Foto del problema (opcional)", className="text-muted small mt-2"),
             dcc.Upload(
                 id="upload_foto",
                 children=html.Div([
@@ -165,16 +172,41 @@ def form_nuevo_reporte():
                     html.Div("Arrastra una foto o haz clic"),
                     html.Div("(JPG / PNG)", className="text-muted", style={"font-size": ".7rem"}),
                 ]),
-                style={"width": "100%", "minHeight": 110, "borderWidth": "1px",
+                style={"width": "100%", "minHeight": 96, "borderWidth": "1px",
                        "borderStyle": "dashed", "borderRadius": 8,
-                       "textAlign": "center", "padding": "14px 8px"},
-                className="mb-2", multiple=False,
+                       "textAlign": "center", "padding": "12px 8px"},
+                className="mb-1", multiple=False,
             ),
             html.Img(id="preview_foto", src="", style={
-                "maxHeight": 140, "display": "none", "borderRadius": 8}),
+                "maxHeight": 120, "display": "none", "borderRadius": 8}),
             html.Div(id="preview_texto", className="text-muted small"),
-            html.Label("📍 Vista previa de la ubicación", className="text-muted small mt-2"),
-            dcc.Graph(id="mini_mapa", config={"displayModeBar": False}, style={"height": "150px"}),
+        ], width=12, lg=6),
+
+        # ---- Ubicación: se fija con un clic en el mapa o con el GPS del equipo ----
+        dbc.Col([
+            html.Label("📍 Ubicación del problema", className="text-muted small mt-1"),
+            html.Div("Haz clic en el mapa para marcar el punto exacto.",
+                     className="text-muted", style={"font-size": ".7rem"}),
+            html.Div([
+                dcc.Graph(id="mini_mapa", style={"height": "230px"},
+                          config={"displayModeBar": False, "scrollZoom": False,
+                                  "doubleClick": False, "staticPlot": True}),
+                # capa transparente: Plotly no emite clic sobre el fondo del mapa
+                html.Div(id="capa_clic_mapa", title="Haz clic para fijar el punto"),
+            ], className="ce-mapa-wrap mt-1"),
+            dbc.Row([
+                dbc.Col(dbc.Button([html.I(className="fa-solid fa-crosshairs me-1"),
+                                    " Usar mi ubicación"], id="btn_gps", color="secondary",
+                                   size="sm", outline=True, className="w-100"),
+                        width=6),
+                dbc.Col(dbc.Button([html.I(className="fa-solid fa-dice me-1"),
+                                    " Punto sugerido"], id="btn_sugerir_punto",
+                                   color="secondary", size="sm", outline=True,
+                                   className="w-100"), width=6),
+            ], className="g-2 mt-1"),
+            html.Div(html.Code(id="txt_coords", children="sin punto seleccionado"),
+                     className="mt-2", style={"font-size": ".78rem"}),
+            html.Div(id="txt_geo", className="text-muted", style={"font-size": ".7rem"}),
         ], width=12, lg=6),
     ])
 
@@ -204,11 +236,51 @@ def barra_filtros():
                                           initial_visible_month=pd.Timestamp.now(),
                                           style={"fontSize": ".78rem"})],
                      className="ce-f-item ce-f-fechas"),
-            html.Div(dbc.Button([html.I(className="fa-solid fa-rotate-left me-1"),
-                                 "Restablecer"], id="btn_reset", color="secondary",
-                                size="sm", outline=True, className="text-nowrap"),
-                     className="ce-f-item ce-f-btn"),
+            html.Div([
+                dbc.Button([html.I(className="fa-solid fa-download me-1"), "CSV"],
+                           id="btn_descargar", color="secondary", size="sm",
+                           outline=True, className="text-nowrap me-2",
+                           title="Descargar los reportes filtrados"),
+                dbc.Button([html.I(className="fa-solid fa-rotate-left me-1"),
+                            "Restablecer"], id="btn_reset", color="secondary",
+                           size="sm", outline=True, className="text-nowrap"),
+            ], className="ce-f-item ce-f-btn"),
         ], className="ce-filtros"),
+    ]), className="surface shadow-sm border-0 mb-3")
+
+
+def tarjeta_mapa():
+    """Tarjeta del mapa: incluye el selector de color de los puntos y la leyenda."""
+    return dbc.Card(dbc.CardBody([
+        dbc.Row([
+            dbc.Col(html.Span([html.I(className="fa-solid fa-map-location-dot me-2"),
+                               "Mapa interactivo"], style={"font-weight": 700}),
+                    width="auto"),
+            dbc.Col(html.Span(id="mapa_nota", className="text-muted d-none d-lg-block",
+                              style={"font-size": ".72rem",
+                                     "margin-left": ".6rem"}),
+                    width="auto", className="align-self-center"),
+            dbc.Col([
+                dbc.RadioItems(
+                    id="vista_mapa", value="puntos", inline=True,
+                    className="ce-segmentado me-3",
+                    options=[{"label": html.Span([html.I(className="fa-solid fa-circle "
+                                                         "me-1"), "Puntos"]),
+                              "value": "puntos"},
+                             {"label": html.Span([html.I(className="fa-solid fa-fire "
+                                                         "me-1"), "Calor"]),
+                              "value": "calor"}],
+                    inputClassName="btn-check", labelClassName="btn btn-sm btn-outline-secondary",
+                ),
+                html.Span("Colorear por", id="lbl_color_mapa", className="text-muted me-2",
+                          style={"font-size": ".72rem"}),
+                dbc.Select(id="color_mapa", size="sm", options=CAMPOS_COLOR_MAPA,
+                           value="tipo_dano", className="ce-select-inline d-inline-block"),
+            ], width="auto", className="ms-auto d-flex align-items-center"),
+        ], className="align-items-center g-2 mb-1"),
+        html.Div(id="leyenda_mapa", className="ce-leyenda mb-1"),
+        dcc.Graph(id="mapa", config={"displayModeBar": False},
+                  style={"height": "70vh"}, className="mt-1"),
     ]), className="surface shadow-sm border-0 mb-3")
 
 
@@ -278,9 +350,7 @@ app.layout = dbc.Container([
 
         # ---------- Mapa (25 % más alto) + tipo/canal apilados a la derecha ----------
         dbc.Row([
-            dbc.Col(tarjeta("Mapa interactivo", "fa-map-location-dot", "mapa", "70vh",
-                            "Haz clic en un punto 👆 · fondo oscuro/acorde al tema · datos simulados"),
-                    width=12, xl=8, className="mb-0"),
+            dbc.Col(tarjeta_mapa(), width=12, xl=8, className="mb-0"),
             dbc.Col([
                 tarjeta("Reportes por tipo de daño", "fa-chart-column", "g_tipo", "32vh",
                         "clic en una barra para filtrar"),
@@ -340,8 +410,12 @@ app.layout = dbc.Container([
         ], className="g-3"),
 
         html.Hr(className="border-dark"),
-        html.P("🚨 DATOS SIMULADOS · PROYECTO ACADÉMICO · Habilidades Gerenciales · "
-               "Autor: Jhon Bedoya (Analista) · Veredas: shapefile DANE 2024 filtrado en QGIS",
+        html.P(["🚨 DATOS SIMULADOS · PROYECTO ACADÉMICO · Habilidades Gerenciales · "
+                "Autor: Jhon Bedoya (Analista) · Veredas: shapefile DANE 2024 filtrado en QGIS",
+                html.Br(),
+                html.Span(f"Servido desde {socket.gethostname()} · "
+                          f"sesión iniciada {pd.Timestamp.now():%Y-%m-%d %H:%M}",
+                          style={"font-size": ".72rem"})],
                className="text-center text-muted small mb-2"),
     ], fluid=True),
 
@@ -375,14 +449,18 @@ app.layout = dbc.Container([
     # Tema actual (lo mantiene assets/theme.js): el mapa cambia de basemap claro/oscuro
     dcc.Store(id="store_tema", data="dark"),
     dcc.Store(id="store_pagina", data=1),
+    dcc.Download(id="descarga_csv"),
     dcc.Store(id="store_seleccion"),
+    dcc.Store(id="store_punto"),      # ubicación elegida en el formulario
+    dcc.Store(id="store_gps"),        # la llena assets/geo.js con navigator.geolocation
+    dcc.Store(id="store_click"),      # la llena assets/mapa_punto.js al clicar el mapa
 ], fluid=True, className="g-3")
 
 
 # ------------------------------------------------------------------
 # Figuras
 # ------------------------------------------------------------------
-def figura_mapa(df_f, tema="dark"):
+def figura_mapa(df_f, tema="dark", campo="tipo_dano", vista="puntos"):
     geo = cargar_veredas_geojson()
     # En tema oscuro el basemap también es oscuro (Carto Dark Matter)
     estilo = "carto-positron" if tema == "light" else "carto-darkmatter"
@@ -397,11 +475,21 @@ def figura_mapa(df_f, tema="dark"):
         showscale=False, hoverinfo="skip",
     ))
     df_m = df_f.copy()
-    if len(df_m):
+    if len(df_m) and vista == "calor":
+        # Densidad: el color representa concentración, no la categoría
+        fig.add_trace(go.Densitymap(
+            lat=df_m["latitud"], lon=df_m["longitud"],
+            radius=17, opacity=0.78,
+            colorscale=[[0, "rgba(52,152,219,0)"], [0.25, "#3498DB"],
+                        [0.55, "#F1C40F"], [0.8, "#E67E22"], [1, "#E74C3C"]],
+            showscale=False, hoverinfo="skip",
+        ))
+    elif len(df_m):
         df_m["fecha_s"] = df_m["fecha_reporte"].dt.strftime("%Y-%m-%d %H:%M")
+        paleta = paleta_campo(campo, df_m[campo].unique())
         fig.add_trace(go.Scattermap(
             lat=df_m["latitud"], lon=df_m["longitud"], mode="markers",
-            marker={"size": 11, "color": df_m["tipo_dano"].map(COLOR_TIPO),
+            marker={"size": 11, "color": df_m[campo].map(paleta),
                     "opacity": 0.85},
             customdata=df_m[["id_reporte", "comuna", "tipo_dano", "canal_reporte",
                              "estado_gestion", "fecha_s", "descripcion"]].values.tolist(),
@@ -420,6 +508,38 @@ def figura_mapa(df_f, tema="dark"):
     return fig
 
 
+def paleta_campo(campo, valores):
+    """Color por valor del campo con el que se pintan los puntos del mapa.
+
+    El orden del diccionario es el de la leyenda: el fijo de cada dimensión
+    (no el de aparición en los datos)."""
+    base = {"tipo_dano": COLOR_TIPO,
+            "canal_reporte": COLOR_CANAL,
+            "estado_gestion": COLOR_ESTADO}.get(campo)
+    if base:
+        orden = ([v for v in base if v in set(valores)] +
+                 [v for v in valores if v not in base])
+        return {v: base.get(v, "#95A5A6") for v in orden}
+    if campo == "comuna":
+        orden = sorted(valores, key=lambda c: int(str(c).split()[-1])
+                       if str(c).split()[-1].isdigit() else 99)
+        return {v: PALETA_COMUNA[i % len(PALETA_COMUNA)] for i, v in enumerate(orden)}
+    return {v: COLOR_TIPO.get(v, "#95A5A6") for v in valores}
+
+
+def leyenda_mapa_html(df_f, campo):
+    """Leyenda de puntos del mapa (HTML, para controlar el estilo)."""
+    presentes = set(df_f[campo])
+    paleta = {v: c for v, c in paleta_campo(campo, df_f[campo].unique()).items()
+              if v in presentes}
+    if not paleta:
+        return html.Span("Sin datos para la leyenda", className="text-muted",
+                         style={"fontSize": ".72rem"})
+    return [html.Span([html.Span("●", style={"color": color, "marginRight": 5,
+                                             "fontSize": ".85rem"}), str(v)],
+                      className="ce-leyenda-item") for v, color in paleta.items()]
+
+
 def _rgba(color, alfa):
     """#RRGGBB -> rgba(), para atenuar la categoría no seleccionada."""
     h = color.lstrip("#")
@@ -427,12 +547,13 @@ def _rgba(color, alfa):
     return f"rgba({r},{g},{b},{alfa})"
 
 
-def _atenuar(colores, categorias, seleccion):
-    """Deja a plena intensidad la categoría con filtro cruzado y atenúa el resto."""
-    if not seleccion or seleccion in ("Todos", "Todas"):
-        return colores
-    return [c if str(cat) == str(seleccion) else _rgba(c, .28)
-            for c, cat in zip(colores, categorias)]
+def _colores_categoria(categorias, seleccion, color=C_DATO):
+    """Un solo color para todas las barras; si hay filtro cruzado, la categoría
+    elegida conserva el color y el resto se apaga (ya hay etiquetas que
+    identifican cada categoría, el color no aporta información extra)."""
+    if not seleccion or str(seleccion) in ("Todos", "Todas"):
+        return [color] * len(categorias)
+    return [color if str(cat) == str(seleccion) else C_APAGADO for cat in categorias]
 
 
 def _fig_vacia(msg="Sin reportes para los filtros seleccionados"):
@@ -470,10 +591,9 @@ def barras_tipo(df_f, seleccion=None):
         return _fig_vacia()
     data = (df_f.groupby("tipo_dano").size().rename("n").reset_index()
             .sort_values("n", ascending=True))
-    colores = [COLOR_TIPO.get(t, "#95A5A6") for t in data["tipo_dano"]]
     fig = go.Figure(go.Bar(
         x=data["n"], y=data["tipo_dano"], orientation="h",
-        marker={"color": _atenuar(colores, data["tipo_dano"], seleccion),
+        marker={"color": _colores_categoria(data["tipo_dano"], seleccion),
                 "cornerradius": 5, "line": {"width": 0}},
         text=data["n"], textposition="outside", cliponaxis=False,
         textfont={"size": 13},
@@ -490,14 +610,13 @@ def embudo_canal(df_f, seleccion=None):
         return _fig_vacia()
     df_c = (df_f.groupby("canal_reporte").size().rename("n").reset_index()
             .sort_values("n", ascending=False))
-    colores = [COLOR_CANAL.get(c, "#95A5A6") for c in df_c["canal_reporte"]]
     fig = go.Figure(go.Funnel(
         y=[ETIQUETA_CANAL.get(c, c) for c in df_c["canal_reporte"]], x=df_c["n"],
         customdata=df_c[["canal_reporte"]].values.tolist(),
         textposition="inside", textinfo="value+percent total", constraintext="inside",
         insidetextfont={"size": 13, "color": "#ffffff", "family": "Inter, Segoe UI, sans-serif"},
         outsidetextfont={"size": 13},
-        marker={"color": _atenuar(colores, df_c["canal_reporte"], seleccion),
+        marker={"color": _colores_categoria(df_c["canal_reporte"], seleccion),
                 "line": {"color": TRANS, "width": 0}},
         connector={"fillcolor": TRANS, "line": {"color": GRID, "width": 1.5}},
         hovertemplate="%{customdata[0]}: <b>%{x}</b> reportes<extra></extra>",
@@ -586,7 +705,7 @@ def fig_comunas(df_f, seleccion=None):
             .sort_values("n", ascending=True))
     fig = go.Figure(go.Bar(
         x=data["n"], y=data["comuna"], orientation="h",
-        marker={"color": _atenuar(["#3498DB"] * len(data), data["comuna"], seleccion),
+        marker={"color": _colores_categoria(data["comuna"], seleccion),
                 "cornerradius": 5, "line": {"width": 0}},
         text=data["n"], textposition="outside", cliponaxis=False,
         textfont={"size": 13},
@@ -606,8 +725,7 @@ def fig_resolucion(df_f, seleccion=None):
     g = g.sort_values("dias")
     fig = go.Figure(go.Bar(
         x=g["dias"], y=g["tipo_dano"], orientation="h",
-        marker={"color": _atenuar([COLOR_TIPO.get(t, "#95A5A6") for t in g["tipo_dano"]],
-                                  g["tipo_dano"], seleccion),
+        marker={"color": _colores_categoria(g["tipo_dano"], seleccion),
                 "cornerradius": 5, "line": {"width": 0}},
         text=[f"{d:.1f} d" for d in g["dias"]], textposition="outside",
         cliponaxis=False, textfont={"size": 13},
@@ -788,13 +906,17 @@ def cargar_opciones_iniciales(_):
     Output("g_tipo", "figure"), Output("g_canal", "figure"),
     Output("g_evol", "figure"), Output("g_semana", "figure"),
     Output("g_comuna", "figure"), Output("g_resolucion", "figure"),
+    Output("leyenda_mapa", "children"), Output("mapa_nota", "children"),
+    Output("color_mapa", "disabled"),
     Input("f_comuna", "value"), Input("f_tipo", "value"),
     Input("f_canal", "value"), Input("f_estado", "value"),
     Input("f_fechas", "start_date"), Input("f_fechas", "end_date"),
     Input("btn_reset", "n_clicks"), Input("store_actualizado", "modified_timestamp"),
-    Input("store_tema", "data"),
+    Input("store_tema", "data"), Input("color_mapa", "value"),
+    Input("vista_mapa", "value"),
 )
-def actualizar_dashboard(comuna, tipo, canal, estado, fi, ff, _reset, _ts, tema):
+def actualizar_dashboard(comuna, tipo, canal, estado, fi, ff, _reset, _ts, tema,
+                         color_mapa, vista):
     df = cargar_df()
     # Filtro cruzado "estilo Power BI": las tarjetas, el mapa, la evolución y la
     # tabla usan TODOS los filtros; cada gráfico de categorías se calcula sin su
@@ -804,10 +926,24 @@ def actualizar_dashboard(comuna, tipo, canal, estado, fi, ff, _reset, _ts, tema)
     sin_tipo = filtrar(df, comuna, "Todos", canal, estado, fi, ff)
     sin_canal = filtrar(df, comuna, tipo, "Todos", estado, fi, ff)
     sin_comuna = filtrar(df, "Todas", tipo, canal, estado, fi, ff)
-    return (resumen_html(base), figura_mapa(base, tema),
+    color_mapa = color_mapa or "tipo_dano"
+    vista = vista or "puntos"
+    if vista == "calor":
+        leyenda = [html.Span([html.Span("●", style={"color": c, "marginRight": 4,
+                                                    "fontSize": ".85rem"}), txt],
+                             className="ce-leyenda-item")
+                   for c, txt in (("#3498DB", "baja"), ("#F1C40F", "media"),
+                                  ("#E67E22", "alta"), ("#E74C3C", "muy alta"))]
+        leyenda = [html.Span("Densidad de reportes:", className="me-2")] + leyenda
+        nota = "Mapa de calor · cambia a Puntos para abrir el detalle"
+    else:
+        leyenda = leyenda_mapa_html(base, color_mapa)
+        nota = "Haz clic en un punto 👆 para ver el detalle"
+    return (resumen_html(base), figura_mapa(base, tema, color_mapa, vista),
             barras_tipo(sin_tipo, tipo), embudo_canal(sin_canal, canal),
             fig_evolucion(base), fig_semanal(base),
-            fig_comunas(sin_comuna, comuna), fig_resolucion(sin_tipo, tipo))
+            fig_comunas(sin_comuna, comuna), fig_resolucion(sin_tipo, tipo),
+            leyenda, nota, vista == "calor")
 
 
 # ------------------------------------------------------------------
@@ -892,6 +1028,27 @@ def cruce_semana(click, inicio_actual):
         df = cargar_df()
         return df["fecha_reporte"].min().date(), df["fecha_reporte"].max().date()
     return semana.date(), (semana + pd.Timedelta(days=6)).date()
+
+
+# 2e. Exportar los reportes filtrados a CSV
+@callback(
+    Output("descarga_csv", "data"),
+    Input("btn_descargar", "n_clicks"),
+    Input("f_comuna", "value"), Input("f_tipo", "value"),
+    Input("f_canal", "value"), Input("f_estado", "value"),
+    Input("f_fechas", "start_date"), Input("f_fechas", "end_date"),
+    prevent_initial_call=True,
+)
+def descargar_csv(n, comuna, tipo, canal, estado, fi, ff):
+    if ctx.triggered_id != "btn_descargar":
+        return no_update
+    f = filtrar(cargar_df(), comuna, tipo, canal, estado, fi, ff)
+    out = f.copy()
+    for col in ("fecha_reporte", "resuelta_en"):
+        out[col] = pd.to_datetime(out[col], errors="coerce").dt.strftime("%Y-%m-%d %H:%M:%S")
+    out = out.fillna("")
+    return dcc.send_data_frame(out.to_csv, "reportes_ciudad_escucha.csv",
+                               index=False, encoding="utf-8-sig")
 
 
 # 2d. Tabla paginada: página actual + página visualizada
@@ -1108,14 +1265,18 @@ def cambiar_estado(nuevo_estado, click_data):
     Input("btn_abrir_form", "n_clicks"),
     Input("btn_cancelar_form", "n_clicks"),
     Input("btn_enviar_form", "n_clicks"),
+    State("store_punto", "data"),
     prevent_initial_call=True,
 )
-def toggle_modal_form(abrir, cancelar, enviar):
+def toggle_modal_form(abrir, cancelar, enviar, punto):
     """Solo abre/cierra. El guardado lo hace la callback de notificación."""
     trig = ctx.triggered_id
     if trig == "btn_abrir_form":
         return True
-    if trig in ("btn_cancelar_form", "btn_enviar_form"):
+    if trig == "btn_cancelar_form":
+        return False
+    # Si falta la ubicación el modal se queda abierto para no perder lo escrito
+    if trig == "btn_enviar_form" and punto:
         return False
     return no_update
 
@@ -1159,53 +1320,101 @@ def guardar_reporte(tipo, comuna, lat, lon, canal, estado, desc, contenido):
     return nuevo_id
 
 
-# 7. Sugerir coordenadas aleatorias + mini-mapa
+# 7. Ubicación del reporte: clic en el mapa, GPS del equipo o punto sugerido
+def _comuna_cercana(df, lat, lon):
+    """Comuna del reporte más próximo: sirve para preseleccionar la comuna."""
+    d = ((df["latitud"] - lat) ** 2 +
+         ((df["longitud"] - lon) * 0.998) ** 2)  # cos(4° lat) ≈ 0.998
+    return df.loc[d.idxmin(), "comuna"]
+
+
 @callback(
-    Output("n_lat", "value", allow_duplicate=True),
-    Output("n_lon", "value", allow_duplicate=True),
-    Output("mini_mapa", "figure"),
-    Output("n_comuna", "value"),
+    Output("store_punto", "data"),
+    Output("n_comuna", "value", allow_duplicate=True),
+    Output("txt_geo", "children"),
+    Input("store_click", "data"),
     Input("btn_sugerir_punto", "n_clicks"),
+    Input("store_gps", "data"),
     State("n_comuna", "value"),
     prevent_initial_call=True,
 )
-def sugerir(_n_clicks, comuna):
+def fijar_punto(clic_mapa, _sugerir, gps, comuna):
+    trig = ctx.triggered_id
     df = cargar_df()
-    comuna_sel = comuna if comuna else random.choice(sorted(df["comuna"].unique()))
-    sub = df[df["comuna"] == comuna_sel]
-    fuente = sub if len(sub) >= 5 else df
-    idx = random.randrange(len(fuente))
-    lat = float(fuente["latitud"].iloc[idx]) + random.uniform(-.0018, .0018)
-    lon = float(fuente["longitud"].iloc[idx]) + random.uniform(-.0018, .0018)
-    lat, lon = round(lat, 6), round(lon, 6)
-    fig = go.Figure(go.Scattermap(lat=[lat], lon=[lon], mode="markers",
-                                  marker={"size": 14, "color": "#E74C3C",
-                                          "opacity": .9}))
-    fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=150,
-                      paper_bgcolor=TRANS,
-                      map={"style": "carto-positron",
-                           "center": {"lat": lat, "lon": lon}, "zoom": 12.6})
-    return lat, lon, fig, comuna_sel
+
+    if trig == "btn_sugerir_punto":
+        comuna_sel = comuna or random.choice(sorted(df["comuna"].unique()))
+        sub = df[df["comuna"] == comuna_sel]
+        fuente = sub if len(sub) >= 5 else df
+        idx = random.randrange(len(fuente))
+        lat = round(float(fuente["latitud"].iloc[idx]) + random.uniform(-.0018, .0018), 6)
+        lon = round(float(fuente["longitud"].iloc[idx]) + random.uniform(-.0018, .0018), 6)
+        return ({"lat": lat, "lon": lon, "fuente": "sugerido"}, comuna_sel,
+                f"Punto al azar dentro de {comuna_sel}.")
+
+    if trig == "store_click":
+        if not clic_mapa or clic_mapa.get("lat") is None:
+            return no_update, no_update, no_update
+        lat, lon = clic_mapa["lat"], clic_mapa["lon"]
+        if not (3.5 < lat < 4.6 and -74.2 < lon < -73.0):
+            return no_update, no_update, "⚠️ Ese punto está fuera de Villavicencio."
+        return ({"lat": round(lat, 6), "lon": round(lon, 6), "fuente": "mapa"},
+                _comuna_cercana(df, lat, lon), "Coordenada fijada en el mapa.")
+
+    if trig == "store_gps":
+        if not gps:
+            return no_update, no_update, no_update
+        if gps.get("error"):
+            return (no_update, no_update,
+                    f"⚠️ No se obtuvo la ubicación: {gps['error']}. "
+                    "Revisa el permiso de ubicación del navegador o marca el punto en el mapa.")
+        lat, lon = gps.get("lat"), gps.get("lon")
+        if lat is None or lon is None:
+            return no_update, no_update, no_update
+        return ({"lat": round(lat, 6), "lon": round(lon, 6), "fuente": "gps"},
+                _comuna_cercana(df, lat, lon), "Ubicación del dispositivo.")
+
+    return no_update, no_update, no_update
 
 
-# 8. Mini-mapa también al mover lat/lon manuales
+# 8. Pintar el punto elegido en el mini-mapa
 @callback(
-    Output("n_lat", "value", allow_duplicate=True),
-    Output("n_lon", "value", allow_duplicate=True),
-    Output("mini_mapa", "figure", allow_duplicate=True),
-    Input("n_lat", "value"), Input("n_lon", "value"),
-    prevent_initial_call=True,
+    Output("mini_mapa", "figure"),
+    Output("txt_coords", "children"),
+    Input("store_punto", "data"),
+    Input("store_tema", "data"),
+    Input("n_comuna", "value"),
 )
-def mini_mapa_manual(lat, lon):
-    lat = 4.1425 if lat is None else lat
-    lon = -73.6294 if lon is None else lon
+def pintar_punto(punto, tema, comuna):
+    estilo = "carto-positron" if tema == "light" else "carto-darkmatter"
+    if not punto:
+        # Sin punto: se encuadra la comuna elegida para poder clicar en detalle
+        centro, zoom = VILLAVICENCIO, 11.8
+        df = cargar_df()
+        if comuna and (df["comuna"] == comuna).any():
+            sub = df[df["comuna"] == comuna]
+            centro = {"lat": float(sub["latitud"].mean()), "lon": float(sub["longitud"].mean())}
+            zoom = 13.2
+        # Sin trazas Plotly no dibuja el mapa (quedarían unos ejes vacíos), así
+        # que se añade un marcador invisible solo para forzar el basemap.
+        fig = go.Figure(go.Scattermap(
+            lat=[VILLAVICENCIO["lat"]], lon=[VILLAVICENCIO["lon"]], mode="markers",
+            marker={"size": 1, "opacity": 0}, hoverinfo="skip", showlegend=False))
+        fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=230,
+                          paper_bgcolor=TRANS,
+                          map={"style": estilo, "center": centro, "zoom": zoom})
+        return fig, "sin punto seleccionado"
+
+    lat, lon = punto["lat"], punto["lon"]
+    color = {"gps": "#27ae60", "sugerido": "#E67E22"}.get(punto.get("fuente"), "#E74C3C")
     fig = go.Figure(go.Scattermap(lat=[lat], lon=[lon], mode="markers",
-                                  marker={"size": 14, "color": "#3498DB", "opacity": .9}))
-    fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=150,
-                      paper_bgcolor=TRANS,
-                      map={"style": "carto-positron",
-                           "center": {"lat": lat, "lon": lon}, "zoom": 12.6})
-    return round(float(lat), 6), round(float(lon), 6), fig
+                                  marker={"size": 15, "color": color, "opacity": .95},
+                                  hovertemplate=f"{lat:.6f}, {lon:.6f}<extra></extra>"))
+    fig.update_layout(margin=dict(l=0, r=0, t=0, b=0), height=230,
+                      paper_bgcolor=TRANS, showlegend=False,
+                      map={"style": estilo, "center": {"lat": lat, "lon": lon},
+                           "zoom": 13.4})
+    return fig, f"{lat:.6f}, {lon:.6f}  ·  {punto.get('fuente', 'manual')}"
 
 
 # 9. Preview de la foto subida
@@ -1221,20 +1430,23 @@ def previsualizar(contenido, nombre):
             f"Vista previa: {nombre}")
 
 
-# 10. Reset del formulario al abrirlo de nuevo (limpia campos)
+# 10. Reset del formulario al abrirlo de nuevo (limpia campos y el punto)
 @callback(
     Output("n_tipo", "value"), Output("n_desc", "value"),
     Output("upload_foto", "contents"), Output("preview_foto", "src"),
     Output("preview_foto", "style"), Output("preview_texto", "children"),
+    Output("store_punto", "data", allow_duplicate=True),
+    Output("txt_geo", "children", allow_duplicate=True),
     Input("btn_abrir_form", "n_clicks"),
     State("n_tipo", "options"),
     prevent_initial_call=True,
 )
 def reset_formulario(n, opts_tipo):
+    vacio = (no_update,) * 8
     if n:
         tipo_def = (opts_tipo[1]["value"] if opts_tipo and len(opts_tipo) > 1 else None)
-        return tipo_def, "", None, "", {"display": "none"}, ""
-    return no_update, no_update, no_update, no_update, no_update, no_update
+        return (tipo_def, "", None, "", {"display": "none"}, "", None, "")
+    return vacio
 
 
 # 11. Notificación Toast (cierra sola)
@@ -1244,15 +1456,18 @@ def reset_formulario(n, opts_tipo):
     Output("store_actualizado", "data"),
     Input("btn_enviar_form", "n_clicks"),
     State("n_tipo", "value"), State("n_comuna", "value"),
-    State("n_lat", "value"), State("n_lon", "value"),
+    State("store_punto", "data"),
     State("n_canal", "value"), State("n_estado", "value"),
     State("n_desc", "value"), State("upload_foto", "contents"),
     prevent_initial_call=True,
 )
-def notificar_guardado(n, tipo, comuna, lat, lon, canal, estado, desc, contenido):
-    if not n or tipo is None or lat is None or lon is None:
-        return no_update, no_update, no_update
-    nuevo = guardar_reporte(tipo, comuna, lat, lon, canal, estado, desc, contenido)
+def notificar_guardado(n, tipo, comuna, punto, canal, estado, desc, contenido):
+    if not n or tipo is None or not punto:
+        return (True, html.Div([html.I(className="fa-solid fa-triangle-exclamation "
+                                       "text-warning me-2"),
+                                "Marca la ubicación en el mapa antes de enviar."]), no_update)
+    nuevo = guardar_reporte(tipo, comuna, punto["lat"], punto["lon"],
+                            canal, estado, desc, contenido)
     fcom = f"{comuna} · {tipo}" if comuna and tipo else ""
     toast = html.Div([
         html.I(className="fa-solid fa-circle-check text-success me-2"),
