@@ -22,7 +22,8 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from dash import Dash, Input, Output, State, callback, ctx, dcc, html, no_update
+from dash import (ALL, Dash, Input, Output, State, callback, ctx, dcc, html,
+                  no_update)
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA_CSV = os.path.join(BASE, "data", "generated", "dataset_simulado.csv")
@@ -305,30 +306,38 @@ app.layout = dbc.Container([
                     width=12, md=4),
         ], className="g-3 mb-3"),
 
-        # ---------- Tabla recientes (paginada) ----------
-        dbc.Row(dbc.Col(dbc.Card([
-            dbc.CardHeader(dbc.Row([
-                dbc.Col(html.Span([html.I(className="fa-solid fa-list me-2"),
-                                   "Reportes registrados"]),
-                        width="auto", className="align-self-center"),
-                dbc.Col([
-                    html.Span(id="info_pagina", className="text-muted me-3",
-                              style={"font-size": ".74rem"}),
-                    dbc.Select(id="tam_pagina", size="sm",
-                               options=[{"label": f"{n} por página", "value": n}
-                                        for n in (10, 25, 50, 100)],
-                               value=10, className="ce-tam-pagina d-inline-block align-middle me-2"),
-                    dbc.Button([html.I(className="fa-solid fa-chevron-left")], id="btn_pag_prev",
-                               color="secondary", outline=True, size="sm",
-                               className="me-1 px-2", title="Página anterior"),
-                    dbc.Button([html.I(className="fa-solid fa-chevron-right")], id="btn_pag_next",
-                               color="secondary", outline=True, size="sm",
-                               className="px-2", title="Página siguiente"),
-                ], width="auto", className="ms-auto d-flex align-items-center"),
-            ], className="align-items-center g-2 flex-wrap")),
-            dbc.CardBody(html.Div(id="tabla_recientes")),
-        ], className="surface shadow-sm border-0 mb-4"),
-            )),
+        # ---------- Detalle del registro seleccionado + tabla paginada ----------
+        dbc.Row([
+            dbc.Col(dbc.Card([
+                dbc.CardHeader(html.Span([html.I(className="fa-solid fa-file-circle-check me-2"),
+                                          "Detalle del reporte"])),
+                dbc.CardBody(html.Div(id="panel_detalle")),
+            ], className="surface shadow-sm border-0 mb-4 h-100"),
+                width=12, lg=4, xl=3, className="mb-0"),
+            dbc.Col(dbc.Card([
+                dbc.CardHeader(dbc.Row([
+                    dbc.Col(html.Span([html.I(className="fa-solid fa-list me-2"),
+                                       "Reportes registrados"]),
+                            width="auto", className="align-self-center"),
+                    dbc.Col([
+                        html.Span(id="info_pagina", className="text-muted me-3",
+                                  style={"font-size": ".74rem"}),
+                        dbc.Select(id="tam_pagina", size="sm",
+                                   options=[{"label": f"{n} por página", "value": n}
+                                            for n in (10, 25, 50, 100)],
+                                   value=10, className="ce-tam-pagina d-inline-block align-middle me-2"),
+                        dbc.Button([html.I(className="fa-solid fa-chevron-left")], id="btn_pag_prev",
+                                   color="secondary", outline=True, size="sm",
+                                   className="me-1 px-2", title="Página anterior"),
+                        dbc.Button([html.I(className="fa-solid fa-chevron-right")], id="btn_pag_next",
+                                   color="secondary", outline=True, size="sm",
+                                   className="px-2", title="Página siguiente"),
+                    ], width="auto", className="ms-auto d-flex align-items-center"),
+                ], className="align-items-center g-2 flex-wrap")),
+                dbc.CardBody(html.Div(id="tabla_recientes")),
+            ], className="surface shadow-sm border-0 mb-4 h-100"),
+                width=12, lg=8, xl=9, className="mb-0"),
+        ], className="g-3"),
 
         html.Hr(className="border-dark"),
         html.P("🚨 DATOS SIMULADOS · PROYECTO ACADÉMICO · Habilidades Gerenciales · "
@@ -366,6 +375,7 @@ app.layout = dbc.Container([
     # Tema actual (lo mantiene assets/theme.js): el mapa cambia de basemap claro/oscuro
     dcc.Store(id="store_tema", data="dark"),
     dcc.Store(id="store_pagina", data=1),
+    dcc.Store(id="store_seleccion"),
 ], fluid=True, className="g-3")
 
 
@@ -610,7 +620,7 @@ def fig_resolucion(df_f, seleccion=None):
     return fig
 
 
-def tabla_recientes_html(df_f, pagina=1, tam=10):
+def tabla_recientes_html(df_f, pagina=1, tam=10, seleccion=None):
     """Tabla paginada de reportes (más recientes primero).
 
     Devuelve (tabla, texto_de_rango, pagina_efectiva, total_paginas).
@@ -635,7 +645,10 @@ def tabla_recientes_html(df_f, pagina=1, tam=10):
                        if "uploads/" in str(r["foto_url"]) else
                        "fa-solid fa-images text-secondary"),
                 style={"width": 30}),
-    ], className="border-dark border-top", style={"font-size": ".8rem"})
+    ], id={"type": "fila_reporte", "index": r["id_reporte"]}, n_clicks=0,
+        className=("ce-fila border-dark border-top"
+                   + (" ce-fila-sel" if r["id_reporte"] == seleccion else "")),
+        style={"font-size": ".8rem"})
         for _, r in df_v.iterrows()]
     tabla = html.Table([
         html.Thead(html.Tr([html.Th("ID", style={"font-size": ".7rem"}),
@@ -657,6 +670,70 @@ def tabla_recientes_html(df_f, pagina=1, tam=10):
     else:
         texto = "Sin reportes con los filtros actuales"
     return tabla, texto, pagina, paginas
+
+
+def panel_detalle_html(id_rep):
+    """Detalle del reporte seleccionado en la tabla, con el mismo aspecto de
+    las tarjetas de gráficos (no un modal)."""
+    if not id_rep:
+        return html.Div([
+            html.I(className="fa-solid fa-hand-pointer fa-2x text-secondary mb-2"),
+            html.P("Haz clic en una fila de la tabla para ver aquí el reporte completo.",
+                   className="text-muted small mb-0"),
+        ], className="text-center py-5 ce-panel-vacio")
+
+    df = cargar_df()
+    fila = df[df["id_reporte"] == id_rep]
+    if fila.empty:
+        return html.Div([html.P("El reporte ya no existe (puede haberse filtrado).",
+                                className="text-muted small mb-0")],
+                        className="text-center py-4")
+    r = fila.iloc[0]
+    tipo = r["tipo_dano"]
+    foto = str(r["foto_url"]) or f"assets/img/{IMG_TIPO.get(tipo, 'otro.png')}"
+    resuelta = r["resuelta_en"]
+    resuelta_txt = ("— sin resolver —" if pd.isna(resuelta)
+                    else resuelta.strftime("%Y-%m-%d %H:%M"))
+
+    def campo(etiqueta, valor, color=None):
+        return html.Div([
+            html.Div(etiqueta, className="ce-panel-label"),
+            html.Div(valor, className="ce-panel-valor",
+                     style={"color": color} if color else None),
+        ], className="mb-2")
+
+    return [
+        html.Img(src="/" + foto, style={
+            "width": "100%", "borderRadius": 10, "height": 150,
+            "objectFit": "cover", "boxShadow": "0 6px 18px rgba(0,0,0,.35)"}),
+        dbc.Row([
+            dbc.Col(html.Code(r["id_reporte"], className="h6"), width="auto",
+                    className="align-self-center"),
+            dbc.Col(dbc.Badge(r["estado_gestion"], className="float-end",
+                              style={"background": COLOR_ESTADO.get(r["estado_gestion"], "#555"),
+                                     "font-size": ".68rem"}),
+                    width="auto", className="ms-auto align-self-center"),
+        ], className="align-items-center mt-3 mb-2 g-1"),
+        campo("Comuna", r["comuna"]),
+        campo("Tipo de daño", r["tipo_dano"], COLOR_TIPO.get(tipo)),
+        campo("Canal", r["canal_reporte"]),
+        campo("Reportado", r["fecha_reporte"].strftime("%Y-%m-%d %H:%M")),
+        campo("Resuelto", resuelta_txt),
+        campo("Ubicación", f"{r['latitud']:.5f}, {r['longitud']:.5f}"),
+        html.Div([
+            html.Div("Estado de gestión", className="ce-panel-label"),
+            dcc.Dropdown(id="dd_estado_panel", clearable=False,
+                         options=["Reportado", "En revisión", "Programado", "Resuelto"],
+                         value=r["estado_gestion"]),
+        ], className="mb-2"),
+        html.Div([
+            html.Div("Descripción", className="ce-panel-label"),
+            html.P(r["descripcion"] or "— dato simulado sin descripción —",
+                   className="small mb-0", style={"fontStyle": "italic"}),
+        ]),
+        html.Div(f"origen: {r['origen_datos']}", className="text-muted mt-2",
+                 style={"font-size": ".66rem"}),
+    ]
 
 
 def resumen_html(df_f):
@@ -852,11 +929,12 @@ def mover_pagina(_prev, _sig, tam, comuna, tipo, canal, estado, fi, ff, _ts, pag
     Input("f_fechas", "start_date"), Input("f_fechas", "end_date"),
     Input("store_pagina", "data"), Input("tam_pagina", "value"),
     Input("store_actualizado", "modified_timestamp"),
+    Input("store_seleccion", "data"),
 )
-def paginar_tabla(comuna, tipo, canal, estado, fi, ff, pagina, tam, _ts):
+def paginar_tabla(comuna, tipo, canal, estado, fi, ff, pagina, tam, _ts, seleccion):
     f = filtrar(cargar_df(), comuna, tipo, canal, estado, fi, ff)
     tam = int(tam or 10)
-    tabla, texto, pag, paginas = tabla_recientes_html(f, pagina, tam)
+    tabla, texto, pag, paginas = tabla_recientes_html(f, pagina, tam, seleccion)
     return tabla, texto, pag <= 1, pag >= paginas
 
 
@@ -941,6 +1019,69 @@ def mostrar_detalle(click_data, _cerrar):
     return True, cuadro
 
 
+def _aplicar_estado(id_rep, nuevo_estado):
+    """Persiste el estado del reporte. Devuelve (ok, toast_children).
+
+    Si el estado pedido es el actual no se reescribe nada: el desplegable se
+    monta con el valor vigente y dispara la callback al abrir el detalle.
+    """
+    df = cargar_df()
+    m = df["id_reporte"] == id_rep
+    if not m.any() or df.loc[m, "estado_gestion"].iloc[0] == nuevo_estado:
+        return False, None
+    df.loc[m, "estado_gestion"] = nuevo_estado
+    # `resuelta_en` alimenta los gráficos de evolución: se marca al resolver y
+    # se limpia si el reporte vuelve a un estado abierto.
+    df.loc[m, "resuelta_en"] = pd.Timestamp.now() if nuevo_estado == "Resuelto" else pd.NaT
+    guardar_csv(df)
+    toast = html.Div([html.I(className="fa-solid fa-circle-check text-success me-2"),
+                      f"Estado de {id_rep} actualizado a “{nuevo_estado}”"])
+    return True, toast
+
+
+# 3b. Selección de una fila de la tabla -> panel de detalle
+@callback(
+    Output("store_seleccion", "data"),
+    Input({"type": "fila_reporte", "index": ALL}, "n_clicks"),
+    prevent_initial_call=True,
+)
+def seleccionar_fila(_clicks):
+    trig = ctx.triggered_id
+    if not isinstance(trig, dict):
+        return no_update
+    # Al repintar la tabla las filas se recrean con n_clicks=0: no es una selección
+    if not (ctx.triggered and ctx.triggered[0]["value"]):
+        return no_update
+    return trig["index"]
+
+
+@callback(
+    Output("panel_detalle", "children"),
+    Input("store_seleccion", "data"),
+    Input("store_actualizado", "modified_timestamp"),
+)
+def mostrar_panel(id_rep, _ts):
+    return panel_detalle_html(id_rep)
+
+
+# 3c. Cambio de estado desde el panel lateral
+@callback(
+    Output("toast_nuevo", "is_open", allow_duplicate=True),
+    Output("toast_nuevo", "children", allow_duplicate=True),
+    Output("store_actualizado", "data", allow_duplicate=True),
+    Input("dd_estado_panel", "value"),
+    State("store_seleccion", "data"),
+    prevent_initial_call=True,
+)
+def cambiar_estado_panel(nuevo_estado, id_rep):
+    if not nuevo_estado or not id_rep:
+        return no_update, no_update, no_update
+    ok, toast = _aplicar_estado(id_rep, nuevo_estado)
+    if not ok:
+        return no_update, no_update, no_update
+    return True, toast, f"panel-{time.time()}"
+
+
 # 4. Guarda el cambio de estado elegido dentro del detalle
 @callback(
     Output("toast_nuevo", "is_open", allow_duplicate=True),
@@ -954,21 +1095,9 @@ def cambiar_estado(nuevo_estado, click_data):
     if not nuevo_estado or not (click_data and click_data.get("points")):
         return no_update, no_update, no_update
     id_rep = click_data["points"][0]["customdata"][0]
-    df = cargar_df()
-    m = df["id_reporte"] == id_rep
-    if not m.any():
+    ok, toast = _aplicar_estado(id_rep, nuevo_estado)
+    if not ok:
         return no_update, no_update, no_update
-    # Al abrir el detalle, el desplegable se monta con el estado actual y dispara
-    # esta callback: si no hay cambio real, no se reescribe el CSV.
-    if df.loc[m, "estado_gestion"].iloc[0] == nuevo_estado:
-        return no_update, no_update, no_update
-    df.loc[m, "estado_gestion"] = nuevo_estado
-    # `resuelta_en` alimenta los gráficos de evolución: se marca al resolver y
-    # se limpia si el reporte vuelve a un estado abierto.
-    df.loc[m, "resuelta_en"] = pd.Timestamp.now() if nuevo_estado == "Resuelto" else pd.NaT
-    guardar_csv(df)
-    toast = html.Div([html.I(className="fa-solid fa-circle-check text-success me-2"),
-                      f"Estado de {id_rep} actualizado a “{nuevo_estado}”"])
     # `store_actualizado` fuerza el refresco de todas las figuras
     return True, toast, f"estado-{time.time()}"
 

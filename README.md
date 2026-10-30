@@ -15,7 +15,7 @@ espacio público del municipio de Villavicencio, Meta, Colombia.
 | 🗺️ **Mapa interactivo** | MapLibre (Plotly `Scattermap`) con fondo CARTO/OpenStreetMap, sin tokens de API |
 | ⭕ **Puntos-círculo** | Color por tipo de daño (Vías · Alumbrado · Basuras · Alcantarillado · Otro) |
 | 🛑 **Capa de veredas** | Contornos del shapefile DANE 2024 (58 veredas de Villavicencio filtradas con **QGIS MCP**) |
-| 📸 **Detalle con foto** | Clic en un punto → modal con imagen, comuna, canal, fecha, estado y descripción |
+| 📸 **Detalle con foto** | Clic en un punto del mapa → modal; clic en una fila de la tabla → el mismo detalle como **panel lateral** (imagen, comuna, tipo, canal, fechas, ubicación, descripción y cambio de estado) |
 | 📝 **Formulario de reporte** | Modal con tipo, comuna, sugerencia de coordenadas 🎲, canal, estado, descripción y **subida de foto** (redimensionada con Pillow) |
 | ✍️ **Cambio de estado** | Desde el modal de detalle: Reportado → En revisión → Programado → Resuelto (persiste en CSV y fija `resuelta_en`) |
 | 🎚️ **Barra de filtros** | Comuna, tipo, canal, estado y rango de fechas en una barra horizontal con **flex-wrap** (se reparte el ancho y salta de línea en pantallas angostas) |
@@ -24,7 +24,7 @@ espacio público del municipio de Villavicencio, Meta, Colombia.
 | 📊 **Gráficas del panel** | Reportes por tipo de daño y Canal de reporte, apiladas a la derecha del mapa |
 | 📈 **Evolución acumulada** | Reportes acumulados, resueltos acumulados y **pendientes (saldo)** calculados con la fecha `resuelta_en` de cada punto |
 | 🧮 **Gestión** | Entradas y salidas por semana, reportes por comuna y tiempo medio de resolución por tipo |
-| 📋 **Tabla paginada** | Todos los reportes filtrados, con paginación (10/25/50/100 por página), contador "Mostrando X–Y de Z" y navegación anterior/siguiente |
+| 📋 **Tabla paginada** | Todos los reportes filtrados, con paginación (10/25/50/100 por página), contador "Mostrando X–Y de Z", navegación anterior/siguiente y fila seleccionada resaltada |
 
 ## 🚀 Arranque local
 

@@ -255,3 +255,15 @@ html.light ::selection { background: rgba(52,152,219,.28); }
     padding: .22rem 1.6rem .22rem .5rem; min-height: 0;
 }
 #info_pagina { white-space: nowrap; }
+
+/* ---------- Panel de detalle del registro + filas clicables ---------- */
+.ce-panel-label {
+    font-size: .63rem; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--ce-text-muted); margin-bottom: .05rem;
+}
+.ce-panel-valor { font-size: .84rem; font-weight: 600; line-height: 1.2; }
+.ce-panel-vacio i { display: block; }
+#tabla_recientes tbody tr.ce-fila { cursor: pointer; }
+#tabla_recientes tbody tr.ce-fila:hover td { background: rgba(52,152,219,.10); }
+#tabla_recientes tbody tr.ce-fila-sel td { background: rgba(52,152,219,.22) !important; }
+html.light #tabla_recientes tbody tr.ce-fila-sel td { background: rgba(52,152,219,.14) !important; }
