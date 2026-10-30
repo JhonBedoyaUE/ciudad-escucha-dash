@@ -7,7 +7,7 @@ Sistema de reporte de daños en espacio público (datos SIMULADOS).
 - Límites de veredas DANE 2024 (GeoJSON filtrado en QGIS)
 - Detalle del reporte con imagen al hacer clic en un punto
 - Formulario para crear nuevos reportes (con subida de foto)
-- Evolución acumulada (reportes / resueltos / pendientes) con `resuelta_en`
+- Evolución acumulada (reportes / resueltos / pendientes) con `fecha_resolucion`
 Autor: Jhon Bedoya — Habilidades Gerenciales
 """
 import base64
@@ -26,6 +26,11 @@ import plotly.graph_objects as go
 from dash import (ALL, Dash, Input, Output, State, callback, ctx, dcc, html,
                   no_update)
 
+from priorizacion import (  # reglas compartidas con scripts/generar_dataset.py
+    DEPENDENCIA_POR_TIPO, DEPENDENCIAS, NIVELES_RIESGO, PRIORIDADES,
+    calcular_prioridad, detalle_puntaje, vecinos_cercanos,
+)
+
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA_CSV = os.path.join(BASE, "data", "generated", "dataset_simulado.csv")
 VEREDAS_GEO = os.path.join(BASE, "data", "processed", "veredas_villavicencio_simpl.geojson")
@@ -40,6 +45,18 @@ COLOR_TIPO = {
     "Basuras": "#2ECC71",
     "Alcantarillado": "#E67E22",
     "Otro": "#95A5A6",
+}
+COLOR_PRIORIDAD = {
+    "Alta": "#E74C3C",
+    "Media": "#F39C12",
+    "Baja": "#27AE60",
+}
+COLOR_DEPENDENCIA = {
+    "Infraestructura": "#4C78A8",
+    "Alborada": "#F58518",
+    "EMAB": "#54A24B",
+    "EDESA": "#72B7B2",
+    "Gobierno/PQRSD": "#B279A2",
 }
 COLOR_ESTADO = {
     "Reportado": "#8e44ad",
@@ -80,6 +97,8 @@ PALETA_COMUNA = ["#4C78A8", "#F58518", "#54A24B", "#E45756", "#72B7B2",
 # Dimensiones por las que se pueden colorear los puntos del mapa
 CAMPOS_COLOR_MAPA = [
     {"label": "Tipo de daño", "value": "tipo_dano"},
+    {"label": "Prioridad", "value": "prioridad"},
+    {"label": "Dependencia", "value": "dependencia"},
     {"label": "Canal de reporte", "value": "canal_reporte"},
     {"label": "Comuna", "value": "comuna"},
     {"label": "Estado de gestión", "value": "estado_gestion"},
@@ -88,17 +107,41 @@ CAMPOS_COLOR_MAPA = [
 # ------------------------------------------------------------------
 # Datos
 # ------------------------------------------------------------------
+COLUMNAS_TEXTO = ("barrio", "dependencia", "riesgo", "prioridad", "descripcion",
+                  "foto_url", "origen_datos")
+
+ORDEN_COLUMNAS = ["id_reporte", "fecha_reporte", "latitud", "longitud", "comuna",
+                  "barrio", "tipo_dano", "canal_reporte", "estado_gestion",
+                  "dependencia", "riesgo", "reporte_repetido", "fecha_resolucion",
+                  "dias_respuesta", "puntaje_prioridad", "prioridad",
+                  "origen_datos", "foto_url", "descripcion"]
+
+
 def cargar_df():
     df = pd.read_csv(DATA_CSV, encoding="utf-8")
+    # Compatibilidad con el esquema anterior del dataset
+    if "fecha_resolucion" not in df.columns and "resuelta_en" in df.columns:
+        df["fecha_resolucion"] = df["resuelta_en"]
     df["fecha_reporte"] = pd.to_datetime(df["fecha_reporte"])
-    for col in ("foto_url", "descripcion", "resuelta_en"):
+    for col in COLUMNAS_TEXTO:
         if col not in df.columns:
             df[col] = ""
+    if "reporte_repetido" not in df.columns:
+        df["reporte_repetido"] = False
+    df["reporte_repetido"] = (df["reporte_repetido"].astype(str)
+                              .str.lower().isin(["true", "1", "si", "sí"]))
+    if "dias_respuesta" not in df.columns:
+        df["dias_respuesta"] = ""
+    if "puntaje_prioridad" not in df.columns:
+        df["puntaje_prioridad"] = 0
+    df["puntaje_prioridad"] = pd.to_numeric(df["puntaje_prioridad"], errors="coerce").fillna(0)
+    for col in COLUMNAS_TEXTO:
+        df[col] = df[col].fillna("").astype(str)
     df["foto_url"] = df["foto_url"].fillna("").astype(str)
     df["descripcion"] = df["descripcion"].fillna("").astype(str)
-    # pandas lee las celdas vacías como NaN; `resuelta_en` se necesita como
+    # pandas lee las celdas vacías como NaN; `fecha_resolucion` se necesita como
     # fecha para calcular el saldo de pendientes en cada punto del tiempo.
-    df["resuelta_en"] = pd.to_datetime(df["resuelta_en"], errors="coerce")
+    df["fecha_resolucion"] = pd.to_datetime(df["fecha_resolucion"], errors="coerce")
     m = df["foto_url"] == ""
     df.loc[m, "foto_url"] = df.loc[m, "tipo_dano"].map(
         lambda t: f"assets/img/{IMG_TIPO.get(t, 'otro.png')}")
@@ -108,13 +151,14 @@ def cargar_df():
 def guardar_csv(df):
     """Escribe el CSV con las fechas en un formato fijo.
 
-    pandas 3 conserva la unidad (µs) de `resuelta_en` y al volcar añadía
+    pandas 3 conserva la unidad (µs) de `fecha_resolucion` y al volcar añadía
     ".000000"; con strftime el archivo queda idéntico al que lee la app.
     """
     out = df.copy()
     out["fecha_reporte"] = pd.to_datetime(out["fecha_reporte"]).dt.strftime("%Y-%m-%d %H:%M:%S")
-    out["resuelta_en"] = (pd.to_datetime(out["resuelta_en"], errors="coerce")
-                          .dt.strftime("%Y-%m-%d %H:%M:%S").fillna(""))
+    out["fecha_resolucion"] = (pd.to_datetime(out["fecha_resolucion"], errors="coerce")
+                               .dt.strftime("%Y-%m-%d %H:%M:%S").fillna(""))
+    out["reporte_repetido"] = out["reporte_repetido"].astype(bool)
     out.to_csv(DATA_CSV, index=False, encoding="utf-8")
 
 
@@ -128,7 +172,7 @@ def option_list(df, columna, valor_todos):
             [{"label": str(v), "value": v} for v in sorted(df[columna].unique())])
 
 
-def filtrar(df, comuna, tipo, canal, estado, fi, ff):
+def filtrar(df, comuna, tipo, canal, estado, fi, ff, prioridad=None, dependencia=None):
     f = df.copy()
     if comuna and comuna != "Todas":
         f = f[f["comuna"] == comuna]
@@ -138,6 +182,10 @@ def filtrar(df, comuna, tipo, canal, estado, fi, ff):
         f = f[f["canal_reporte"] == canal]
     if estado and estado != "Todos":
         f = f[f["estado_gestion"] == estado]
+    if prioridad and prioridad != "Todas":
+        f = f[f["prioridad"] == prioridad]
+    if dependencia and dependencia != "Todas":
+        f = f[f["dependencia"] == dependencia]
     if fi and ff:
         f = f[(f["fecha_reporte"] >= pd.Timestamp(fi)) &
               (f["fecha_reporte"] < pd.Timestamp(ff) + pd.Timedelta(days=1))]
@@ -156,11 +204,24 @@ def form_nuevo_reporte():
                          dbc.Select(id="n_canal")], width=6),
             ]),
             dbc.Row([
+                dbc.Col([html.Label("Barrio", className="text-muted small mt-2"),
+                         dbc.Select(id="n_barrio")], width=6),
+                dbc.Col([html.Label("Riesgo percibido", className="text-muted small mt-2"),
+                         dbc.Select(id="n_riesgo", options=NIVELES_RIESGO,
+                                    value="Medio")], width=6),
+            ]),
+            dbc.Row([
                 dbc.Col([html.Label("Estado", className="text-muted small mt-2"),
                          dbc.Select(id="n_estado",
                                     options=["Reportado", "En revisión", "Programado", "Resuelto"])],
                         width=6),
+                dbc.Col([html.Label("Prioridad calculada", className="text-muted small mt-2"),
+                         html.Div(id="n_prioridad", className="pt-1")], width=6),
             ]),
+            html.Div([html.I(className="fa-solid fa-arrow-right-long me-2"),
+                      html.Span("Dependencia responsable: ", className="text-muted"),
+                      html.Span(id="n_dependencia", style={"fontWeight": 600})],
+                     className="small mt-2"),
             html.Label("Descripción del problema", className="text-muted small mt-2"),
             dbc.Textarea(id="n_desc", rows=3,
                          placeholder="Ej: 'Alumbrado público descompuesto frente a la vereda...'"),
@@ -231,6 +292,10 @@ def barra_filtros():
                       dcc.Dropdown(id="f_canal", clearable=False)], className="ce-f-item"),
             html.Div([html.Label("Estado de gestión", className="ce-f-label"),
                       dcc.Dropdown(id="f_estado", clearable=False)], className="ce-f-item"),
+            html.Div([html.Label("Prioridad", className="ce-f-label"),
+                      dcc.Dropdown(id="f_prioridad", clearable=False)], className="ce-f-item"),
+            html.Div([html.Label("Dependencia", className="ce-f-label"),
+                      dcc.Dropdown(id="f_dependencia", clearable=False)], className="ce-f-item"),
             html.Div([html.Label("Rango de fechas", className="ce-f-label"),
                       dcc.DatePickerRange(id="f_fechas", minimum_nights=0,
                                           initial_visible_month=pd.Timestamp.now(),
@@ -348,6 +413,21 @@ app.layout = dbc.Container([
         # ---------- Barra de filtros (ocupa el ancho que antes eran las tarjetas) ----------
         barra_filtros(),
 
+        # ---------- Indicador del Plan de Desarrollo + priorización ----------
+        dbc.Row([
+            dbc.Col(tarjeta("Plan de Desarrollo · Villavo Somos Todos", "fa-bullseye",
+                            "g_plan", "132px",
+                            "216 de 300 km · LED 50 % → meta 90 %"),
+                    width=12, xl=4),
+            dbc.Col(tarjeta("Reportes por prioridad", "fa-flag", "g_prioridad", "165px",
+                            "clic en una barra para filtrar"),
+                    width=12, md=6, xl=3),
+            dbc.Col(tarjeta("Ranking de comunas por prioridad", "fa-ranking-star",
+                            "g_ranking", "195px",
+                            "60 % altas + 25 % pendientes + 15 % antigüedad"),
+                    width=12, md=6, xl=5),
+        ], className="g-3 mb-3"),
+
         # ---------- Mapa (25 % más alto) + tipo/canal apilados a la derecha ----------
         dbc.Row([
             dbc.Col(tarjeta_mapa(), width=12, xl=8, className="mb-0"),
@@ -363,17 +443,22 @@ app.layout = dbc.Container([
         dbc.Row(dbc.Col(
             tarjeta("Evolución acumulada: reportes, resueltos y pendientes",
                     "fa-chart-line", "g_evol", "38vh",
-                    "saldo = reportes creados − resueltos a esa fecha (usa resuelta_en)"),
+                    "saldo = reportes creados − resueltos a esa fecha (usa fecha_resolucion)"),
                    width=12), className="g-3 mb-3"),
 
         dbc.Row([
             dbc.Col(tarjeta("Entradas y salidas por semana", "fa-right-left",
-                            "g_semana", "30vh", "clic en una semana para filtrar"), width=12, md=4),
-            dbc.Col(tarjeta("Reportes por comuna", "fa-map", "g_comuna", "30vh",
-                            "clic en una comuna para filtrar"), width=12, md=4),
-            dbc.Col(tarjeta("Tiempo medio de resolución por tipo", "fa-stopwatch",
-                            "g_resolucion", "30vh", "clic para filtrar por tipo"),
-                    width=12, md=4),
+                            "g_semana", "28vh", "clic en una semana para filtrar"),
+                    width=12, md=6, xl=3),
+            dbc.Col(tarjeta("Reportes por comuna", "fa-map", "g_comuna", "28vh",
+                            "clic en una comuna para filtrar"),
+                    width=12, md=6, xl=3),
+            dbc.Col(tarjeta("Tiempo medio por tipo de daño", "fa-stopwatch",
+                            "g_resolucion", "28vh", "clic para filtrar por tipo"),
+                    width=12, md=6, xl=3),
+            dbc.Col(tarjeta("Tiempo de respuesta por dependencia", "fa-building-columns",
+                            "g_dependencia", "28vh", "días entre reporte y resolución"),
+                    width=12, md=6, xl=3),
         ], className="g-3 mb-3"),
 
         # ---------- Detalle del registro seleccionado + tabla paginada ----------
@@ -515,7 +600,9 @@ def paleta_campo(campo, valores):
     (no el de aparición en los datos)."""
     base = {"tipo_dano": COLOR_TIPO,
             "canal_reporte": COLOR_CANAL,
-            "estado_gestion": COLOR_ESTADO}.get(campo)
+            "estado_gestion": COLOR_ESTADO,
+            "prioridad": COLOR_PRIORIDAD,
+            "dependencia": COLOR_DEPENDENCIA}.get(campo)
     if base:
         orden = ([v for v in base if v in set(valores)] +
                  [v for v in valores if v not in base])
@@ -642,7 +729,7 @@ def serie_evolucion(df_f):
     fin = f["creado"].max()
     dias = pd.date_range(inicio, fin, freq="D")
     nuevos = f.groupby("creado").size().reindex(dias, fill_value=0)
-    resueltos = (f["resuelta_en"].dropna().dt.normalize().value_counts()
+    resueltos = (f["fecha_resolucion"].dropna().dt.normalize().value_counts()
                  .reindex(dias, fill_value=0))
     acum = nuevos.cumsum()
     acum_res = resueltos.cumsum()
@@ -681,7 +768,7 @@ def fig_semanal(df_f):
     # Solo cuentan las resoluciones ocurridas dentro de la ventana seleccionada
     dia_ini = f["fecha_reporte"].dt.normalize().min()
     dia_fin = f["fecha_reporte"].dt.normalize().max()
-    r = f["resuelta_en"].dropna().dt.normalize()
+    r = f["fecha_resolucion"].dropna().dt.normalize()
     resueltos = (r[(r >= dia_ini) & (r <= dia_fin)]
                  .dt.to_period("W-MON").dt.start_time.value_counts().sort_index())
     idx = nuevos.index.union(resueltos.index)
@@ -717,10 +804,10 @@ def fig_comunas(df_f, seleccion=None):
 
 
 def fig_resolucion(df_f, seleccion=None):
-    r = df_f.dropna(subset=["resuelta_en"]).copy()
+    r = df_f.dropna(subset=["fecha_resolucion"]).copy()
     if r.empty:
         return _fig_vacia("Todavía no hay reportes resueltos")
-    r["dias"] = (r["resuelta_en"] - r["fecha_reporte"]).dt.total_seconds() / 86400
+    r["dias"] = (r["fecha_resolucion"] - r["fecha_reporte"]).dt.total_seconds() / 86400
     g = r.groupby("tipo_dano").agg(dias=("dias", "mean"), n=("dias", "size")).reset_index()
     g = g.sort_values("dias")
     fig = go.Figure(go.Bar(
@@ -736,6 +823,151 @@ def fig_resolucion(df_f, seleccion=None):
     fig = _layout_base(fig, 230, categorias=True)
     fig.update_layout(margin=dict(l=108, r=48, t=6, b=6))
     return fig
+
+
+
+
+# ------------------------------------------------------------------
+# Plan de Desarrollo, priorización y dependencias
+# ------------------------------------------------------------------
+META_VIAS_KM = 300.0        # meta del Plan "Villavo Somos Todos 2024-2027"
+VIAS_AVANCE_KM = 216.0      # km intervenidos a mayo de 2026 (fuente oficial)
+META_LED = 90.0             # % de alumbrado modernizado
+LED_AVANCE = 50.0           # % a finales de 2025 (fuente oficial)
+
+
+def _gauge(valor, meta, titulo, sufijo, color, dominio):
+    return go.Indicator(
+        mode="gauge+number",
+        value=valor,
+        domain=dominio,
+        number={"suffix": sufijo, "font": {"size": 21}},
+        title={"text": f"<b>{titulo}</b><br>"
+                       f"<span style='font-size:10.5px'>{valor:.0f} de {meta:.0f}{sufijo}</span>",
+               "font": {"size": 11}},
+        gauge={
+            "axis": {"visible": False, "range": [0, meta]},
+            "bar": {"color": color, "thickness": .62},
+            "bgcolor": "rgba(148,163,184,.12)",
+            "borderwidth": 0,
+            "threshold": {"line": {"color": "#E74C3C", "width": 3},
+                          "thickness": .9, "value": meta},
+        },
+    )
+
+
+def fig_plan_desarrollo(df_f):
+    """Indicadores del Plan de Desarrollo (requisito de la rúbrica).
+
+    Parte del avance oficial publicado (216 de 300 km de vías y 50 % de LED) y
+    le suma la evidencia ciudadana del periodo filtrado, con supuestos
+    declarados: 1 reporte de vías ≈ 0.25 km priorizados y 30 puntos de LED por
+    cada 1000 reportes de alumbrado.
+    """
+    vias = int((df_f["tipo_dano"] == "Vías").sum())
+    luminarias = int((df_f["tipo_dano"] == "Alumbrado público").sum())
+    km_total = min(META_VIAS_KM, VIAS_AVANCE_KM + round(vias * 0.25, 1))
+    led_total = min(META_LED, LED_AVANCE + luminarias / 1000 * 30)
+
+    fig = go.Figure()
+    fig.add_trace(_gauge(km_total, META_VIAS_KM, "Vías intervenidas", " km",
+                         "#3498DB", {"x": [0.0, 0.48], "y": [0, 0.8]}))
+    fig.add_trace(_gauge(led_total, META_LED, "Alumbrado LED", " %",
+                         "#1ABC9C", {"x": [0.52, 1.0], "y": [0, 0.8]}))
+    fig.update_layout(margin=dict(l=6, r=6, t=16, b=0), height=150,
+                      paper_bgcolor=TRANS, showlegend=False, font={"size": 11})
+    return fig
+
+
+def fig_prioridades(df_f, seleccion=None):
+    """Reportes por nivel de prioridad (Alta / Media / Baja).
+
+    Aquí el color sí aporta: es el semáforo de priorización.
+    """
+    if df_f.empty:
+        return _fig_vacia()
+    data = (df_f.groupby("prioridad").size().reindex(PRIORIDADES, fill_value=0)
+            .rename("n").reset_index().iloc[::-1])   # Alta arriba
+    colores = [COLOR_PRIORIDAD.get(p, C_DATO) for p in data["prioridad"]]
+    if seleccion and seleccion != "Todas":
+        colores = [c if p == seleccion else C_APAGADO
+                   for c, p in zip(colores, data["prioridad"])]
+    fig = go.Figure(go.Bar(
+        x=data["n"], y=data["prioridad"], orientation="h",
+        marker={"color": colores, "cornerradius": 5, "line": {"width": 0}},
+        text=data["n"].astype(int), textposition="outside", cliponaxis=False,
+        textfont={"size": 13},
+        hovertemplate="Prioridad %{y}: <b>%{x}</b> reportes<extra></extra>",
+    ))
+    fig = _layout_base(fig, 150, categorias=True)
+    fig.update_layout(margin=dict(l=72, r=34, t=4, b=4))
+    return fig
+
+
+def fig_ranking_comunas(df_f):
+    """Ranking de comunas por índice de prioridad (entregable del Analista)."""
+    if df_f.empty:
+        return _fig_vacia()
+    hoy = pd.Timestamp.now()
+    filas = []
+    for comuna, g in df_f.groupby("comuna"):
+        total = len(g)
+        altas = float((g["prioridad"] == "Alta").mean() * 100)
+        pendientes = g[g["fecha_resolucion"].isna()]
+        pct_pend = len(pendientes) / total * 100 if total else 0
+        dias = (((hoy - pendientes["fecha_reporte"]).dt.days.clip(lower=0).mean())
+                if len(pendientes) else 0.0)
+        filas.append({"comuna": comuna, "altas": altas, "pendientes": pct_pend,
+                      "dias": float(dias), "n": total,
+                      "n_altas": int((g["prioridad"] == "Alta").sum())})
+    rk = pd.DataFrame(filas)
+    max_dias = max(1.0, rk["dias"].max())
+    rk["indice"] = (0.60 * rk["altas"] + 0.25 * rk["pendientes"]
+                    + 0.15 * (rk["dias"] / max_dias * 100)).round(1)
+    rk = rk.sort_values("indice", ascending=True)
+
+    # Los tres primeros puestos se resaltan: es un ranking de atención
+    colores = ["#E74C3C" if p >= len(rk) - 3 else "#4C78A8" for p in range(len(rk))]
+    fig = go.Figure(go.Bar(
+        x=rk["indice"], y=rk["comuna"], orientation="h",
+        marker={"color": colores, "cornerradius": 5, "line": {"width": 0}},
+        text=[f"{v:.0f}" for v in rk["indice"]], textposition="outside",
+        cliponaxis=False, textfont={"size": 12.5},
+        customdata=rk[["n_altas", "n"]].values.tolist(),
+        hovertemplate=("%{y}: índice <b>%{x:.1f}</b><br>"
+                       "%{customdata[0]} de %{customdata[1]} reportes en prioridad alta"
+                       "<extra></extra>"),
+    ))
+    fig = _layout_base(fig, 195, categorias=True)
+    fig.update_layout(margin=dict(l=82, r=42, t=6, b=6))
+    fig.update_xaxes(range=[0, 100], tickvals=[0, 25, 50, 75, 100])
+    return fig
+
+
+def fig_dependencias(df_f, seleccion=None):
+    """Tiempo medio de respuesta por dependencia (días)."""
+    r = df_f.dropna(subset=["fecha_resolucion"]).copy()
+    if r.empty:
+        return _fig_vacia("Todavía no hay reportes resueltos")
+    r["dias"] = (r["fecha_resolucion"] - r["fecha_reporte"]).dt.total_seconds() / 86400
+    g = (r.groupby("dependencia")
+         .agg(dias=("dias", "mean"), n=("dias", "size")).reset_index()
+         .sort_values("dias"))
+    fig = go.Figure(go.Bar(
+        x=g["dias"], y=g["dependencia"], orientation="h",
+        marker={"color": _colores_categoria(g["dependencia"], seleccion),
+                "cornerradius": 5, "line": {"width": 0}},
+        text=[f"{d:.1f} d" for d in g["dias"]], textposition="outside",
+        cliponaxis=False, textfont={"size": 13},
+        customdata=g[["n"]].values.tolist(),
+        hovertemplate="%{y}: <b>%{x:.1f}</b> días de media (%{customdata[0]} resueltos)"
+                      "<extra></extra>",
+    ))
+    fig = _layout_base(fig, 230, categorias=True)
+    fig.update_layout(margin=dict(l=116, r=48, t=6, b=6))
+    return fig
+
+
 
 
 def tabla_recientes_html(df_f, pagina=1, tam=10, seleccion=None):
@@ -754,6 +986,9 @@ def tabla_recientes_html(df_f, pagina=1, tam=10, seleccion=None):
         html.Td(html.Span([html.Span("●", style={"color": COLOR_TIPO.get(r["tipo_dano"], "#999"),
                                                  "marginRight": 6}), r["tipo_dano"]])),
         html.Td(r["comuna"]),
+        html.Td(dbc.Badge(r["prioridad"] or "—", style={
+            "font-size": ".66rem",
+            "background": COLOR_PRIORIDAD.get(r["prioridad"], "#555")})),
         html.Td(r["canal_reporte"], className="d-none d-md-table-cell"),
         html.Td(dbc.Badge(r["estado_gestion"], className="d-block",
                           style={"font-size": ".68rem",
@@ -772,6 +1007,7 @@ def tabla_recientes_html(df_f, pagina=1, tam=10, seleccion=None):
         html.Thead(html.Tr([html.Th("ID", style={"font-size": ".7rem"}),
                             html.Th("Tipo", style={"font-size": ".7rem"}),
                             html.Th("Comuna", style={"font-size": ".7rem"}),
+                            html.Th("Prioridad", style={"font-size": ".7rem"}),
                             html.Th("Canal", className="d-none d-md-table-cell",
                                     style={"font-size": ".7rem"}),
                             html.Th("Estado", style={"font-size": ".7rem"}),
@@ -809,7 +1045,7 @@ def panel_detalle_html(id_rep):
     r = fila.iloc[0]
     tipo = r["tipo_dano"]
     foto = str(r["foto_url"]) or f"assets/img/{IMG_TIPO.get(tipo, 'otro.png')}"
-    resuelta = r["resuelta_en"]
+    resuelta = r["fecha_resolucion"]
     resuelta_txt = ("— sin resolver —" if pd.isna(resuelta)
                     else resuelta.strftime("%Y-%m-%d %H:%M"))
 
@@ -832,11 +1068,16 @@ def panel_detalle_html(id_rep):
                                      "font-size": ".68rem"}),
                     width="auto", className="ms-auto align-self-center"),
         ], className="align-items-center mt-3 mb-2 g-1"),
-        campo("Comuna", r["comuna"]),
+        campo("Comuna / barrio", f"{r['comuna']} · {r['barrio']}" if r["barrio"] else r["comuna"]),
         campo("Tipo de daño", r["tipo_dano"], COLOR_TIPO.get(tipo)),
+        campo("Dependencia", r["dependencia"] or "—"),
         campo("Canal", r["canal_reporte"]),
         campo("Reportado", r["fecha_reporte"].strftime("%Y-%m-%d %H:%M")),
         campo("Resuelto", resuelta_txt),
+        campo("Prioridad", f"{r['prioridad']} · {int(r['puntaje_prioridad'])} pts"
+              + ("  (repetido)" if r["reporte_repetido"] else ""),
+              COLOR_PRIORIDAD.get(r["prioridad"])),
+        campo("Riesgo declarado", r["riesgo"] or "—"),
         campo("Ubicación", f"{r['latitud']:.5f}, {r['longitud']:.5f}"),
         html.Div([
             html.Div("Estado de gestión", className="ce-panel-label"),
@@ -880,9 +1121,11 @@ def resumen_html(df_f):
 @callback(
     Output("f_comuna", "options"), Output("f_tipo", "options"),
     Output("f_canal", "options"), Output("f_estado", "options"),
+    Output("f_prioridad", "options"), Output("f_dependencia", "options"),
     # Sin `value` inicial el filtro queda en blanco y parece que no hay datos
     Output("f_comuna", "value"), Output("f_tipo", "value"),
     Output("f_canal", "value"), Output("f_estado", "value"),
+    Output("f_prioridad", "value"), Output("f_dependencia", "value"),
     Output("f_fechas", "start_date"), Output("f_fechas", "end_date"),
     Output("n_tipo", "options"), Output("n_comuna", "options"),
     Output("n_canal", "options"),
@@ -894,7 +1137,8 @@ def cargar_opciones_iniciales(_):
     df = cargar_df()
     return (option_list(df, "comuna", "Todas"), option_list(df, "tipo_dano", "Todos"),
             option_list(df, "canal_reporte", "Todos"), option_list(df, "estado_gestion", "Todos"),
-            "Todas", "Todos", "Todos", "Todos",
+            option_list(df, "prioridad", "Todas"), option_list(df, "dependencia", "Todas"),
+            "Todas", "Todos", "Todos", "Todos", "Todas", "Todas",
             df["fecha_reporte"].min().date(), df["fecha_reporte"].max().date(),
             option_list(df, "tipo_dano", "—"), option_list(df, "comuna", "—"),
             option_list(df, "canal_reporte", "—"), False)
@@ -906,26 +1150,30 @@ def cargar_opciones_iniciales(_):
     Output("g_tipo", "figure"), Output("g_canal", "figure"),
     Output("g_evol", "figure"), Output("g_semana", "figure"),
     Output("g_comuna", "figure"), Output("g_resolucion", "figure"),
+    Output("g_plan", "figure"), Output("g_prioridad", "figure"),
+    Output("g_ranking", "figure"), Output("g_dependencia", "figure"),
     Output("leyenda_mapa", "children"), Output("mapa_nota", "children"),
     Output("color_mapa", "disabled"),
     Input("f_comuna", "value"), Input("f_tipo", "value"),
     Input("f_canal", "value"), Input("f_estado", "value"),
+    Input("f_prioridad", "value"), Input("f_dependencia", "value"),
     Input("f_fechas", "start_date"), Input("f_fechas", "end_date"),
     Input("btn_reset", "n_clicks"), Input("store_actualizado", "modified_timestamp"),
     Input("store_tema", "data"), Input("color_mapa", "value"),
     Input("vista_mapa", "value"),
 )
-def actualizar_dashboard(comuna, tipo, canal, estado, fi, ff, _reset, _ts, tema,
-                         color_mapa, vista):
+def actualizar_dashboard(comuna, tipo, canal, estado, prioridad, dependencia,
+                         fi, ff, _reset, _ts, tema, color_mapa, vista):
     df = cargar_df()
     # Filtro cruzado "estilo Power BI": las tarjetas, el mapa, la evolución y la
     # tabla usan TODOS los filtros; cada gráfico de categorías se calcula sin su
     # propia dimensión para seguir mostrando las demás categorías (atenuadas) y
     # poder cambiar de selección con un clic.
-    base = filtrar(df, comuna, tipo, canal, estado, fi, ff)
-    sin_tipo = filtrar(df, comuna, "Todos", canal, estado, fi, ff)
-    sin_canal = filtrar(df, comuna, tipo, "Todos", estado, fi, ff)
-    sin_comuna = filtrar(df, "Todas", tipo, canal, estado, fi, ff)
+    base = filtrar(df, comuna, tipo, canal, estado, fi, ff, prioridad, dependencia)
+    sin_tipo = filtrar(df, comuna, "Todos", canal, estado, fi, ff, prioridad, dependencia)
+    sin_canal = filtrar(df, comuna, tipo, "Todos", estado, fi, ff, prioridad, dependencia)
+    sin_comuna = filtrar(df, "Todas", tipo, canal, estado, fi, ff, prioridad, dependencia)
+    sin_prioridad = filtrar(df, comuna, tipo, canal, estado, fi, ff, "Todas", dependencia)
     color_mapa = color_mapa or "tipo_dano"
     vista = vista or "puntos"
     if vista == "calor":
@@ -943,6 +1191,8 @@ def actualizar_dashboard(comuna, tipo, canal, estado, fi, ff, _reset, _ts, tema,
             barras_tipo(sin_tipo, tipo), embudo_canal(sin_canal, canal),
             fig_evolucion(base), fig_semanal(base),
             fig_comunas(sin_comuna, comuna), fig_resolucion(sin_tipo, tipo),
+            fig_plan_desarrollo(base), fig_prioridades(sin_prioridad, prioridad),
+            fig_ranking_comunas(base), fig_dependencias(base),
             leyenda, nota, vista == "calor")
 
 
@@ -986,6 +1236,16 @@ def cruce_tipo(click, actual):
 )
 def cruce_resolucion(click, actual):
     return _alternar(_categoria_click(click), actual)
+
+
+@callback(
+    Output("f_prioridad", "value", allow_duplicate=True),
+    Input("g_prioridad", "clickData"),
+    State("f_prioridad", "value"),
+    prevent_initial_call=True,
+)
+def cruce_prioridad(click, actual):
+    return _alternar(_categoria_click(click), actual, vacio="Todas")
 
 
 @callback(
@@ -1036,15 +1296,16 @@ def cruce_semana(click, inicio_actual):
     Input("btn_descargar", "n_clicks"),
     Input("f_comuna", "value"), Input("f_tipo", "value"),
     Input("f_canal", "value"), Input("f_estado", "value"),
+    Input("f_prioridad", "value"), Input("f_dependencia", "value"),
     Input("f_fechas", "start_date"), Input("f_fechas", "end_date"),
     prevent_initial_call=True,
 )
-def descargar_csv(n, comuna, tipo, canal, estado, fi, ff):
+def descargar_csv(n, comuna, tipo, canal, estado, prioridad, dependencia, fi, ff):
     if ctx.triggered_id != "btn_descargar":
         return no_update
-    f = filtrar(cargar_df(), comuna, tipo, canal, estado, fi, ff)
+    f = filtrar(cargar_df(), comuna, tipo, canal, estado, fi, ff, prioridad, dependencia)
     out = f.copy()
-    for col in ("fecha_reporte", "resuelta_en"):
+    for col in ("fecha_reporte", "fecha_resolucion"):
         out[col] = pd.to_datetime(out[col], errors="coerce").dt.strftime("%Y-%m-%d %H:%M:%S")
     out = out.fillna("")
     return dcc.send_data_frame(out.to_csv, "reportes_ciudad_escucha.csv",
@@ -1058,17 +1319,20 @@ def descargar_csv(n, comuna, tipo, canal, estado, fi, ff):
     Input("tam_pagina", "value"),
     Input("f_comuna", "value"), Input("f_tipo", "value"),
     Input("f_canal", "value"), Input("f_estado", "value"),
+    Input("f_prioridad", "value"), Input("f_dependencia", "value"),
     Input("f_fechas", "start_date"), Input("f_fechas", "end_date"),
     Input("store_actualizado", "modified_timestamp"),
     State("store_pagina", "data"),
     prevent_initial_call=True,
 )
-def mover_pagina(_prev, _sig, tam, comuna, tipo, canal, estado, fi, ff, _ts, pagina):
+def mover_pagina(_prev, _sig, tam, comuna, tipo, canal, estado, prioridad, dependencia,
+                 fi, ff, _ts, pagina):
     """Cualquier cambio de filtro vuelve a la primera página."""
     if ctx.triggered_id not in ("btn_pag_prev", "btn_pag_next"):
         return 1
     tam = int(tam or 10)
-    total = len(filtrar(cargar_df(), comuna, tipo, canal, estado, fi, ff))
+    total = len(filtrar(cargar_df(), comuna, tipo, canal, estado, fi, ff,
+                        prioridad, dependencia))
     maxp = max(1, math.ceil(total / tam))
     actual = min(max(1, pagina or 1), maxp)
     if ctx.triggered_id == "btn_pag_prev":
@@ -1083,13 +1347,15 @@ def mover_pagina(_prev, _sig, tam, comuna, tipo, canal, estado, fi, ff, _ts, pag
     Output("btn_pag_next", "disabled"),
     Input("f_comuna", "value"), Input("f_tipo", "value"),
     Input("f_canal", "value"), Input("f_estado", "value"),
+    Input("f_prioridad", "value"), Input("f_dependencia", "value"),
     Input("f_fechas", "start_date"), Input("f_fechas", "end_date"),
     Input("store_pagina", "data"), Input("tam_pagina", "value"),
     Input("store_actualizado", "modified_timestamp"),
     Input("store_seleccion", "data"),
 )
-def paginar_tabla(comuna, tipo, canal, estado, fi, ff, pagina, tam, _ts, seleccion):
-    f = filtrar(cargar_df(), comuna, tipo, canal, estado, fi, ff)
+def paginar_tabla(comuna, tipo, canal, estado, prioridad, dependencia,
+                  fi, ff, pagina, tam, _ts, seleccion):
+    f = filtrar(cargar_df(), comuna, tipo, canal, estado, fi, ff, prioridad, dependencia)
     tam = int(tam or 10)
     tabla, texto, pag, paginas = tabla_recientes_html(f, pagina, tam, seleccion)
     return tabla, texto, pag <= 1, pag >= paginas
@@ -1101,6 +1367,8 @@ def paginar_tabla(comuna, tipo, canal, estado, fi, ff, pagina, tam, _ts, selecci
     Output("f_tipo", "value", allow_duplicate=True),
     Output("f_canal", "value", allow_duplicate=True),
     Output("f_estado", "value", allow_duplicate=True),
+    Output("f_prioridad", "value", allow_duplicate=True),
+    Output("f_dependencia", "value", allow_duplicate=True),
     Output("f_fechas", "start_date", allow_duplicate=True),
     Output("f_fechas", "end_date", allow_duplicate=True),
     Input("btn_reset", "n_clicks"),
@@ -1108,9 +1376,9 @@ def paginar_tabla(comuna, tipo, canal, estado, fi, ff, pagina, tam, _ts, selecci
 )
 def reset_filtros(n):
     if not n:
-        return (no_update,) * 6
+        return (no_update,) * 8
     df = cargar_df()
-    return ("Todas", "Todos", "Todos", "Todos",
+    return ("Todas", "Todos", "Todos", "Todos", "Todas", "Todas",
             df["fecha_reporte"].min().date(), df["fecha_reporte"].max().date())
 
 
@@ -1136,7 +1404,7 @@ def mostrar_detalle(click_data, _cerrar):
     if "/" not in foto_url:
         foto_url = f"assets/img/{IMG_TIPO.get(tipo, 'otro.png')}"
     img_url = "/" + foto_url
-    resuelta = (fila["resuelta_en"].iloc[0] if len(fila) else pd.NaT)
+    resuelta = (fila["fecha_resolucion"].iloc[0] if len(fila) else pd.NaT)
     resuelta_txt = (resuelta.strftime("%Y-%m-%d %H:%M")
                     if pd.notna(resuelta) else "— sin resolver —")
     cuadro = dbc.Row([
@@ -1187,9 +1455,9 @@ def _aplicar_estado(id_rep, nuevo_estado):
     if not m.any() or df.loc[m, "estado_gestion"].iloc[0] == nuevo_estado:
         return False, None
     df.loc[m, "estado_gestion"] = nuevo_estado
-    # `resuelta_en` alimenta los gráficos de evolución: se marca al resolver y
+    # `fecha_resolucion` alimenta los gráficos de evolución: se marca al resolver y
     # se limpia si el reporte vuelve a un estado abierto.
-    df.loc[m, "resuelta_en"] = pd.Timestamp.now() if nuevo_estado == "Resuelto" else pd.NaT
+    df.loc[m, "fecha_resolucion"] = pd.Timestamp.now() if nuevo_estado == "Resuelto" else pd.NaT
     guardar_csv(df)
     toast = html.Div([html.I(className="fa-solid fa-circle-check text-success me-2"),
                       f"Estado de {id_rep} actualizado a “{nuevo_estado}”"])
@@ -1282,7 +1550,8 @@ def toggle_modal_form(abrir, cancelar, enviar, punto):
 
 
 # 6. Guardar reporte en CSV
-def guardar_reporte(tipo, comuna, lat, lon, canal, estado, desc, contenido):
+def guardar_reporte(tipo, comuna, lat, lon, canal, estado, desc, contenido,
+                    barrio="", riesgo="Medio"):
     df = cargar_df()
     maxv = df["id_reporte"].str.extract(r"(\d+)$")[0].astype(int).max()
     nuevo_id = f"CE-2026-{int(maxv) + 1:04d}"
@@ -1301,21 +1570,33 @@ def guardar_reporte(tipo, comuna, lat, lon, canal, estado, desc, contenido):
         foto_url = f"assets/uploads/{nombre}"
 
     estado = estado if estado else "Reportado"
+    # Un reporte nuevo del mismo tipo y a menos de 150 m se marca como repetido
+    vecinos = vecinos_cercanos(df, float(lat), float(lon), tipo)
+    repetido = vecinos >= 2
+    pts, prioridad = calcular_prioridad(tipo, riesgo or "Medio", repetido, vecinos, 0)
     nueva = pd.DataFrame([{
         "id_reporte": nuevo_id,
         "fecha_reporte": ahora,
         "latitud": round(float(lat), 6),
         "longitud": round(float(lon), 6),
         "comuna": comuna,
+        "barrio": barrio or "",
         "tipo_dano": tipo,
         "canal_reporte": canal if canal else "App Ciudad Escucha",
         "estado_gestion": estado,
+        "dependencia": DEPENDENCIA_POR_TIPO.get(tipo, "Gobierno/PQRSD"),
+        "riesgo": riesgo or "Medio",
+        "reporte_repetido": repetido,
+        "fecha_resolucion": ahora if estado == "Resuelto" else pd.NaT,
+        "dias_respuesta": 0 if estado == "Resuelto" else "",
+        "puntaje_prioridad": pts,
+        "prioridad": prioridad,
         "origen_datos": "SIMULADO_FORMULARIO_APP",
         "foto_url": foto_url,
         "descripcion": (desc or "").strip(),
-        "resuelta_en": ahora if estado == "Resuelto" else pd.NaT,
     }])
     df = pd.concat([df, nueva], ignore_index=True)
+    df = df.reindex(columns=ORDEN_COLUMNAS)
     guardar_csv(df)
     return nuevo_id
 
@@ -1417,6 +1698,50 @@ def pintar_punto(punto, tema, comuna):
     return fig, f"{lat:.6f}, {lon:.6f}  ·  {punto.get('fuente', 'manual')}"
 
 
+# 8b. Barrios de la comuna elegida
+@callback(
+    Output("n_barrio", "options"),
+    Output("n_barrio", "value"),
+    Input("n_comuna", "value"),
+)
+def barrios_comuna(comuna):
+    df = cargar_df()
+    if comuna and comuna != "—":
+        opciones = sorted(df.loc[df["comuna"] == comuna, "barrio"].unique())
+    else:
+        opciones = sorted(df["barrio"].unique())
+    if not opciones:
+        return [], None
+    return [{"label": b, "value": b} for b in opciones], opciones[0]
+
+
+# 8c. Prioridad y dependencia calculadas mientras se llena el formulario
+@callback(
+    Output("n_prioridad", "children"),
+    Output("n_dependencia", "children"),
+    Input("n_tipo", "value"), Input("n_riesgo", "value"), Input("store_punto", "data"),
+)
+def prioridad_formulario(tipo, riesgo, punto):
+    if not tipo:
+        return "", "—"
+    dependencia = DEPENDENCIA_POR_TIPO.get(tipo, "Gobierno/PQRSD")
+    nivel = riesgo or "Medio"
+    vecinos = 1
+    if punto:
+        vecinos = vecinos_cercanos(cargar_df(), punto["lat"], punto["lon"], tipo)
+    repetido = vecinos >= 2
+    detalle = detalle_puntaje(tipo, nivel, repetido, vecinos, 0)
+    prioridad = ("Alta" if detalle["total"] >= 65
+                 else "Media" if detalle["total"] >= 40 else "Baja")
+    insignia = dbc.Badge(f"{prioridad} · {detalle['total']} pts", style={
+        "background": COLOR_PRIORIDAD[prioridad], "fontSize": ".76rem"})
+    desglose = html.Span(
+        f"riesgo {detalle['riesgo']} + reincidencia {detalle['reincidencia']}"
+        + (" · repetido" if repetido else ""),
+        className="text-muted ms-2", style={"fontSize": ".66rem"})
+    return [insignia, desglose], dependencia
+
+
 # 9. Preview de la foto subida
 @callback(
     Output("preview_foto", "src"), Output("preview_foto", "style"),
@@ -1437,15 +1762,16 @@ def previsualizar(contenido, nombre):
     Output("preview_foto", "style"), Output("preview_texto", "children"),
     Output("store_punto", "data", allow_duplicate=True),
     Output("txt_geo", "children", allow_duplicate=True),
+    Output("n_riesgo", "value", allow_duplicate=True),
     Input("btn_abrir_form", "n_clicks"),
     State("n_tipo", "options"),
     prevent_initial_call=True,
 )
 def reset_formulario(n, opts_tipo):
-    vacio = (no_update,) * 8
+    vacio = (no_update,) * 9
     if n:
         tipo_def = (opts_tipo[1]["value"] if opts_tipo and len(opts_tipo) > 1 else None)
-        return (tipo_def, "", None, "", {"display": "none"}, "", None, "")
+        return (tipo_def, "", None, "", {"display": "none"}, "", None, "", "Medio")
     return vacio
 
 
@@ -1459,15 +1785,17 @@ def reset_formulario(n, opts_tipo):
     State("store_punto", "data"),
     State("n_canal", "value"), State("n_estado", "value"),
     State("n_desc", "value"), State("upload_foto", "contents"),
+    State("n_barrio", "value"), State("n_riesgo", "value"),
     prevent_initial_call=True,
 )
-def notificar_guardado(n, tipo, comuna, punto, canal, estado, desc, contenido):
+def notificar_guardado(n, tipo, comuna, punto, canal, estado, desc, contenido,
+                       barrio, riesgo):
     if not n or tipo is None or not punto:
         return (True, html.Div([html.I(className="fa-solid fa-triangle-exclamation "
                                        "text-warning me-2"),
                                 "Marca la ubicación en el mapa antes de enviar."]), no_update)
     nuevo = guardar_reporte(tipo, comuna, punto["lat"], punto["lon"],
-                            canal, estado, desc, contenido)
+                            canal, estado, desc, contenido, barrio, riesgo)
     fcom = f"{comuna} · {tipo}" if comuna and tipo else ""
     toast = html.Div([
         html.I(className="fa-solid fa-circle-check text-success me-2"),

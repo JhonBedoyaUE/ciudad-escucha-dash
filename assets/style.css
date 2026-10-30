@@ -327,3 +327,9 @@ html.light .surface:hover { box-shadow: 0 8px 22px rgba(15, 30, 50, .12) !import
     color: var(--ce-text) !important;
 }
 #btn_pag_prev:disabled, #btn_pag_next:disabled { opacity: .35; }
+
+/* ---------- Barra de filtros compacta (caben los 6 filtros en una fila) ---------- */
+.ce-f-item { flex: 1 1 148px; min-width: 132px; }
+.ce-f-fechas { flex: 1 1 300px; min-width: 288px; }
+.ce-f-btn { flex: 0 0 auto; }
+#g_prioridad .plot-container { cursor: pointer; }

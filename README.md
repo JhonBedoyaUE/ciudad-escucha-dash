@@ -23,7 +23,10 @@ espacio público del municipio de Villavicencio, Meta, Colombia.
 | 🔢 **Resumen compacto** | Total de reportes, % resueltos, pendientes y comunas como *chips* (sin tarjetas KPI) |
 | 📊 **Gráficas del panel** | Reportes por tipo de daño y Canal de reporte, apiladas a la derecha del mapa |
 | 📈 **Evolución acumulada** | Reportes acumulados, resueltos acumulados y **pendientes (saldo)** calculados con la fecha `resuelta_en` de cada punto |
-| 🧮 **Gestión** | Entradas y salidas por semana, reportes por comuna y tiempo medio de resolución por tipo |
+| 🧮 **Gestión** | Entradas y salidas por semana, reportes por comuna, tiempo medio por tipo de daño y **tiempo de respuesta por dependencia** |
+| 🎯 **Indicador del Plan de Desarrollo** | Gauges de avance de las metas *300 km de vías* y *alumbrado LED al 90 %*, con el avance oficial + la evidencia ciudadana del periodo |
+| 🚩 **Priorización** | Reglas Riesgo + Reincidencia + Antigüedad → `prioridad` Alta/Media/Baja y `puntaje_prioridad` (0–100) en cada reporte, aplicadas al dataset y al formulario |
+| 🏆 **Ranking de comunas** | Índice de prioridad comunal (60 % altas + 25 % pendientes + 15 % antigüedad) con los tres primeros puestos resaltados |
 | 📋 **Tabla paginada** | Todos los reportes filtrados, con paginación (10/25/50/100 por página), contador "Mostrando X–Y de Z", navegación anterior/siguiente y fila seleccionada resaltada |
 
 ## 🚀 Arranque local
@@ -56,6 +59,34 @@ docker run -p 8050:8050 ciudad-escucha-dash
 
 El `Dockerfile` usa **Waitress** (servidor WSGI de producción) y expone la
 salud de la app en `/health`.
+
+## 🧮 Reglas de priorización
+
+Documentadas en [`priorizacion.py`](priorizacion.py) (fuente única que usan el
+generador, el dashboard y el formulario) y en
+`data/generated/reglas_priorizacion.md`:
+
+| Criterio | Puntos | Cálculo |
+|----------|-------:|---------|
+| **Riesgo** | 0–50 | Base por tipo (Alumbrado 45 · Vías 40 · Alcantarillado 30 · Basuras 20 · Otro 10) + nivel declarado (Alto +10 · Medio +5) |
+| **Reincidencia** | 0–30 | +20 si es repetido (mismo tipo a ≤120 m) · +10 si hay 3+ en 150 m |
+| **Antigüedad** | 0–20 | Días sin resolver (>60 → 20 · 31–60 → 17 · 16–30 → 12 · 8–15 → 8 · 3–7 → 4) |
+
+Alta ≥ 65 · Media 40–64 · Baja < 40.
+
+**Ajustes por las entrevistas:** el alumbrado pesa más que las vías por la
+inseguridad asociada; se agregaron los canales `WhatsApp` y `Presencial` para no
+excluir digitalmente; el riesgo percibido entra al puntaje; cada tipo de daño se
+enruta a su dependencia (Infraestructura, Alborada, EMAB, EDESA, Gobierno/PQRSD).
+
+### Regenerar el dataset
+
+```bash
+./venv/bin/python scripts/generar_dataset.py --n 1000 --semilla 42
+```
+
+Es reproducible (semilla fija) y escribe `dataset_simulado.csv`,
+`ranking_comunas.csv` y `reglas_priorizacion.md`.
 
 ## ☁️ Despliegue en AWS (producción)
 
@@ -103,12 +134,16 @@ túnel local (`c-escucha`, `ee01174c-1d9a-4d6c-84c1-a0d2ecb8a55b`) y levantar
 ├── run.sh                       # arranque con waitress
 ├── data/
 │   ├── generated/dataset_simulado.csv   # 1000 registros sintéticos + nuevos del formulario
+│   ├── generated/ranking_comunas.csv    # ranking de comunas por prioridad
+│   ├── generated/reglas_priorizacion.md # reglas aplicadas y ajustes de entrevistas
 │   └── processed/veredas_villavicencio_simpl.geojson
 ├── assets/
 │   ├── img/*.png                # imágenes sintéticas de tipos de daño (Z-image generadas)
 │   ├── uploads/                 # fotos subidas desde el formulario
 │   └── style.css                # tema oscuro compacto
+├── priorizacion.py              # reglas de priorización (generador + dashboard)
 └── scripts/
+    └── generar_dataset.py       # generador del dataset simulado
 ```
 
 ## 🗺️ Origen de la capa de veredas
