@@ -19,6 +19,7 @@ espacio público del municipio de Villavicencio, Meta, Colombia.
 | 📝 **Formulario de reporte** | Modal con tipo, comuna, sugerencia de coordenadas 🎲, canal, estado, descripción y **subida de foto** (redimensionada con Pillow) |
 | ✍️ **Cambio de estado** | Desde el modal de detalle: Reportado → En revisión → Programado → Resuelto (persiste en CSV y fija `resuelta_en`) |
 | 🎚️ **Barra de filtros** | Comuna, tipo, canal, estado y rango de fechas en una barra horizontal con **flex-wrap** (se reparte el ancho y salta de línea en pantallas angostas) |
+| 🖱️ **Filtros cruzados** | Clic en una barra/etapa (tipo, canal, comuna, tiempo de resolución) filtra todo el panel — chips, mapa, evolución y tabla; clic en una semana filtra ese rango de fechas. Un segundo clic en la misma categoría quita el filtro. El gráfico clicado conserva todas sus categorías (las demás atenuadas) para poder cambiar de selección |
 | 🔢 **Resumen compacto** | Total de reportes, % resueltos, pendientes y comunas como *chips* (sin tarjetas KPI) |
 | 📊 **Gráficas del panel** | Reportes por tipo de daño y Canal de reporte, apiladas a la derecha del mapa |
 | 📈 **Evolución acumulada** | Reportes acumulados, resueltos acumulados y **pendientes (saldo)** calculados con la fecha `resuelta_en` de cada punto |

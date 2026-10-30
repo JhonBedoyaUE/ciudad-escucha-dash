@@ -244,3 +244,7 @@ html.light ::selection { background: rgba(52,152,219,.28); }
 ::-webkit-scrollbar-thumb { background: var(--ce-scrollbar); border-radius: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 .DateInput, .DateInput input, .DatePicker__picker { font-size: 12px; }
+
+/* ---------- Filtros cruzados: gráficos clicables ---------- */
+#g_tipo .plot-container, #g_canal .plot-container, #g_comuna .plot-container,
+#g_resolucion .plot-container, #g_semana .plot-container { cursor: pointer; }

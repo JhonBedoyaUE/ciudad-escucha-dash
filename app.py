@@ -96,8 +96,7 @@ def option_list(df, columna, valor_todos):
             [{"label": str(v), "value": v} for v in sorted(df[columna].unique())])
 
 
-def filtrar(comuna, tipo, canal, estado, fi, ff):
-    df = cargar_df()
+def filtrar(df, comuna, tipo, canal, estado, fi, ff):
     f = df.copy()
     if comuna and comuna != "Todas":
         f = f[f["comuna"] == comuna]
@@ -268,8 +267,10 @@ app.layout = dbc.Container([
                             "Haz clic en un punto 👆 · fondo oscuro/acorde al tema · datos simulados"),
                     width=12, xl=8, className="mb-0"),
             dbc.Col([
-                tarjeta("Reportes por tipo de daño", "fa-chart-column", "g_tipo", "32vh"),
-                tarjeta("Canal de reporte", "fa-filter", "g_canal", "32vh"),
+                tarjeta("Reportes por tipo de daño", "fa-chart-column", "g_tipo", "32vh",
+                        "clic en una barra para filtrar"),
+                tarjeta("Canal de reporte", "fa-filter", "g_canal", "32vh",
+                        "clic en una etapa para filtrar"),
             ], width=12, xl=4),
         ], className="g-3 mb-3"),
 
@@ -282,11 +283,12 @@ app.layout = dbc.Container([
 
         dbc.Row([
             dbc.Col(tarjeta("Entradas y salidas por semana", "fa-right-left",
-                            "g_semana", "30vh"), width=12, md=4),
-            dbc.Col(tarjeta("Reportes por comuna", "fa-map", "g_comuna", "30vh"),
-                    width=12, md=4),
+                            "g_semana", "30vh", "clic en una semana para filtrar"), width=12, md=4),
+            dbc.Col(tarjeta("Reportes por comuna", "fa-map", "g_comuna", "30vh",
+                            "clic en una comuna para filtrar"), width=12, md=4),
             dbc.Col(tarjeta("Tiempo medio de resolución por tipo", "fa-stopwatch",
-                            "g_resolucion", "30vh"), width=12, md=4),
+                            "g_resolucion", "30vh", "clic para filtrar por tipo"),
+                    width=12, md=4),
         ], className="g-3 mb-3"),
 
         # ---------- Tabla recientes ----------
@@ -375,6 +377,21 @@ def figura_mapa(df_f, tema="dark"):
     return fig
 
 
+def _rgba(color, alfa):
+    """#RRGGBB -> rgba(), para atenuar la categoría no seleccionada."""
+    h = color.lstrip("#")
+    r, g, b = (int(h[i:i + 2], 16) for i in (0, 2, 4))
+    return f"rgba({r},{g},{b},{alfa})"
+
+
+def _atenuar(colores, categorias, seleccion):
+    """Deja a plena intensidad la categoría con filtro cruzado y atenúa el resto."""
+    if not seleccion or seleccion in ("Todos", "Todas"):
+        return colores
+    return [c if str(cat) == str(seleccion) else _rgba(c, .28)
+            for c, cat in zip(colores, categorias)]
+
+
 def _fig_vacia(msg="Sin reportes para los filtros seleccionados"):
     fig = go.Figure()
     fig.update_layout(margin=dict(l=10, r=10, t=10, b=10), paper_bgcolor=TRANS,
@@ -405,16 +422,16 @@ def _layout_base(fig, alto, leyenda=False, categorias=False):
     return fig
 
 
-def barras_tipo(df_f):
+def barras_tipo(df_f, seleccion=None):
     if df_f.empty:
         return _fig_vacia()
-    # Orden fijo por color turístico => mismo orden que la leyenda del mapa
     data = (df_f.groupby("tipo_dano").size().rename("n").reset_index()
             .sort_values("n", ascending=True))
+    colores = [COLOR_TIPO.get(t, "#95A5A6") for t in data["tipo_dano"]]
     fig = go.Figure(go.Bar(
         x=data["n"], y=data["tipo_dano"], orientation="h",
-        marker={"color": data["tipo_dano"].map(COLOR_TIPO), "cornerradius": 5,
-                "line": {"width": 0}},
+        marker={"color": _atenuar(colores, data["tipo_dano"], seleccion),
+                "cornerradius": 5, "line": {"width": 0}},
         text=data["n"], textposition="outside", cliponaxis=False,
         textfont={"size": 13},
         hovertemplate="%{y}: <b>%{x}</b> reportes<extra></extra>",
@@ -424,19 +441,20 @@ def barras_tipo(df_f):
     return fig
 
 
-def embudo_canal(df_f):
+def embudo_canal(df_f, seleccion=None):
     """Embudo de canales: del que más reportes trae al que menos."""
     if df_f.empty:
         return _fig_vacia()
     df_c = (df_f.groupby("canal_reporte").size().rename("n").reset_index()
             .sort_values("n", ascending=False))
+    colores = [COLOR_CANAL.get(c, "#95A5A6") for c in df_c["canal_reporte"]]
     fig = go.Figure(go.Funnel(
         y=[ETIQUETA_CANAL.get(c, c) for c in df_c["canal_reporte"]], x=df_c["n"],
         customdata=df_c[["canal_reporte"]].values.tolist(),
         textposition="inside", textinfo="value+percent total", constraintext="inside",
         insidetextfont={"size": 13, "color": "#ffffff", "family": "Inter, Segoe UI, sans-serif"},
         outsidetextfont={"size": 13},
-        marker={"color": [COLOR_CANAL.get(c, "#95A5A6") for c in df_c["canal_reporte"]],
+        marker={"color": _atenuar(colores, df_c["canal_reporte"], seleccion),
                 "line": {"color": TRANS, "width": 0}},
         connector={"fillcolor": TRANS, "line": {"color": GRID, "width": 1.5}},
         hovertemplate="%{customdata[0]}: <b>%{x}</b> reportes<extra></extra>",
@@ -456,9 +474,10 @@ def serie_evolucion(df_f):
     f = df_f.copy()
     f["creado"] = f["fecha_reporte"].dt.normalize()
     inicio = f["creado"].min()
+    # El eje se limita al rango de reportes seleccionado: si el filtro cubre una
+    # semana, no se estira hasta las fechas de resolución de meses posteriores
+    # (las resoluciones fuera del rango simplemente no entran en la serie).
     fin = f["creado"].max()
-    if f["resuelta_en"].notna().any():
-        fin = max(fin, f["resuelta_en"].max().normalize())
     dias = pd.date_range(inicio, fin, freq="D")
     nuevos = f.groupby("creado").size().reindex(dias, fill_value=0)
     resueltos = (f["resuelta_en"].dropna().dt.normalize().value_counts()
@@ -487,7 +506,7 @@ def fig_evolucion(df_f):
         line={"color": "#1ABC9C", "width": 2.6},
         hovertemplate="Resueltos: <b>%{y}</b><extra></extra>"))
     fig = _layout_base(fig, 300, leyenda=True)
-    fig.update_xaxes(tickformat="%d %b")
+    fig.update_xaxes(tickformat="%d %b", nticks=min(8, max(2, len(dias))))
     return fig
 
 
@@ -497,8 +516,12 @@ def fig_semanal(df_f):
     f = df_f.copy()
     nuevos = (f["fecha_reporte"].dt.to_period("W-MON").dt.start_time
               .value_counts().sort_index())
-    resueltos = (f["resuelta_en"].dropna().dt.to_period("W-MON").dt.start_time
-                 .value_counts().sort_index())
+    # Solo cuentan las resoluciones ocurridas dentro de la ventana seleccionada
+    dia_ini = f["fecha_reporte"].dt.normalize().min()
+    dia_fin = f["fecha_reporte"].dt.normalize().max()
+    r = f["resuelta_en"].dropna().dt.normalize()
+    resueltos = (r[(r >= dia_ini) & (r <= dia_fin)]
+                 .dt.to_period("W-MON").dt.start_time.value_counts().sort_index())
     idx = nuevos.index.union(resueltos.index)
     fig = go.Figure()
     fig.add_trace(go.Bar(x=idx, y=nuevos.reindex(idx, fill_value=0), name="Nuevos",
@@ -513,14 +536,15 @@ def fig_semanal(df_f):
     return fig
 
 
-def fig_comunas(df_f):
+def fig_comunas(df_f, seleccion=None):
     if df_f.empty:
         return _fig_vacia()
     data = (df_f.groupby("comuna").size().rename("n").reset_index()
             .sort_values("n", ascending=True))
     fig = go.Figure(go.Bar(
         x=data["n"], y=data["comuna"], orientation="h",
-        marker={"color": "#3498DB", "cornerradius": 5, "line": {"width": 0}},
+        marker={"color": _atenuar(["#3498DB"] * len(data), data["comuna"], seleccion),
+                "cornerradius": 5, "line": {"width": 0}},
         text=data["n"], textposition="outside", cliponaxis=False,
         textfont={"size": 13},
         hovertemplate="%{y}: <b>%{x}</b> reportes<extra></extra>",
@@ -530,7 +554,7 @@ def fig_comunas(df_f):
     return fig
 
 
-def fig_resolucion(df_f):
+def fig_resolucion(df_f, seleccion=None):
     r = df_f.dropna(subset=["resuelta_en"]).copy()
     if r.empty:
         return _fig_vacia("Todavía no hay reportes resueltos")
@@ -539,8 +563,9 @@ def fig_resolucion(df_f):
     g = g.sort_values("dias")
     fig = go.Figure(go.Bar(
         x=g["dias"], y=g["tipo_dano"], orientation="h",
-        marker={"color": g["tipo_dano"].map(COLOR_TIPO), "cornerradius": 5,
-                "line": {"width": 0}},
+        marker={"color": _atenuar([COLOR_TIPO.get(t, "#95A5A6") for t in g["tipo_dano"]],
+                                  g["tipo_dano"], seleccion),
+                "cornerradius": 5, "line": {"width": 0}},
         text=[f"{d:.1f} d" for d in g["dias"]], textposition="outside",
         cliponaxis=False, textfont={"size": 13},
         customdata=g[["n"]].values.tolist(),
@@ -645,10 +670,104 @@ def cargar_opciones_iniciales(_):
     Input("store_tema", "data"),
 )
 def actualizar_dashboard(comuna, tipo, canal, estado, fi, ff, _reset, _ts, tema):
-    f = filtrar(comuna, tipo, canal, estado, fi, ff)
-    return (resumen_html(f), figura_mapa(f, tema), barras_tipo(f), embudo_canal(f),
-            fig_evolucion(f), fig_semanal(f), fig_comunas(f), fig_resolucion(f),
-            tabla_recientes_html(f))
+    df = cargar_df()
+    # Filtro cruzado "estilo Power BI": las tarjetas, el mapa, la evolución y la
+    # tabla usan TODOS los filtros; cada gráfico de categorías se calcula sin su
+    # propia dimensión para seguir mostrando las demás categorías (atenuadas) y
+    # poder cambiar de selección con un clic.
+    base = filtrar(df, comuna, tipo, canal, estado, fi, ff)
+    sin_tipo = filtrar(df, comuna, "Todos", canal, estado, fi, ff)
+    sin_canal = filtrar(df, comuna, tipo, "Todos", estado, fi, ff)
+    sin_comuna = filtrar(df, "Todas", tipo, canal, estado, fi, ff)
+    return (resumen_html(base), figura_mapa(base, tema),
+            barras_tipo(sin_tipo, tipo), embudo_canal(sin_canal, canal),
+            fig_evolucion(base), fig_semanal(base),
+            fig_comunas(sin_comuna, comuna), fig_resolucion(sin_tipo, tipo),
+            tabla_recientes_html(base))
+
+
+# ------------------------------------------------------------------
+# 2c. Filtros cruzados: clic en una barra/etapa de un gráfico
+# ------------------------------------------------------------------
+def _categoria_click(click_data):
+    """Categoría del punto clicado; el embudo usa etiqueta corta en `y`, por eso
+    se prefiere customdata[0] cuando existe."""
+    if not click_data or not click_data.get("points"):
+        return None
+    punto = click_data["points"][0]
+    cdata = punto.get("customdata")
+    if isinstance(cdata, list) and cdata:
+        return cdata[0]
+    return punto.get("y")
+
+
+def _alternar(valor, actual, vacio="Todos"):
+    """Clic en la categoría ya filtrada = quitar el filtro."""
+    if valor is None:
+        return no_update
+    return vacio if valor == actual else valor
+
+
+@callback(
+    Output("f_tipo", "value", allow_duplicate=True),
+    Input("g_tipo", "clickData"),
+    State("f_tipo", "value"),
+    prevent_initial_call=True,
+)
+def cruce_tipo(click, actual):
+    return _alternar(_categoria_click(click), actual)
+
+
+@callback(
+    Output("f_tipo", "value", allow_duplicate=True),
+    Input("g_resolucion", "clickData"),
+    State("f_tipo", "value"),
+    prevent_initial_call=True,
+)
+def cruce_resolucion(click, actual):
+    return _alternar(_categoria_click(click), actual)
+
+
+@callback(
+    Output("f_canal", "value", allow_duplicate=True),
+    Input("g_canal", "clickData"),
+    State("f_canal", "value"),
+    prevent_initial_call=True,
+)
+def cruce_canal(click, actual):
+    return _alternar(_categoria_click(click), actual)
+
+
+@callback(
+    Output("f_comuna", "value", allow_duplicate=True),
+    Input("g_comuna", "clickData"),
+    State("f_comuna", "value"),
+    prevent_initial_call=True,
+)
+def cruce_comuna(click, actual):
+    return _alternar(_categoria_click(click), actual, vacio="Todas")
+
+
+@callback(
+    Output("f_fechas", "start_date", allow_duplicate=True),
+    Output("f_fechas", "end_date", allow_duplicate=True),
+    Input("g_semana", "clickData"),
+    State("f_fechas", "start_date"),
+    prevent_initial_call=True,
+)
+def cruce_semana(click, inicio_actual):
+    """Clic en una semana del gráfico de barras = filtrar ese rango de fechas."""
+    if not click or not click.get("points"):
+        return no_update, no_update
+    x = click["points"][0].get("x")
+    if not x:
+        return no_update, no_update
+    semana = pd.Timestamp(x).normalize()
+    # Clic en la semana ya filtrada: vuelve al rango completo
+    if inicio_actual and pd.Timestamp(inicio_actual) == semana:
+        df = cargar_df()
+        return df["fecha_reporte"].min().date(), df["fecha_reporte"].max().date()
+    return semana.date(), (semana + pd.Timedelta(days=6)).date()
 
 
 # 2b. Restablecer: vuelve los filtros al estado inicial
